@@ -14,9 +14,15 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+@app.exception_handler(projects.ClipNotFound)
+async def _clip_missing(_request, exc):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 
 def _project(pid):
@@ -126,6 +132,8 @@ def delete_project(pid: str):
 @app.post("/projects/{pid}/analyze")
 def reanalyze(pid: str, body: dict = Body(default={})):
     p = _project(pid)
+    if projects.analyze_running(pid):
+        raise HTTPException(409, "Clipsworld is already working on this video. Wait for it to finish.")
     stage = body.get("from", "clips" if p.get("transcript") else "start")
     job = jobs.start("analyze", pid, projects.analyze, pid, "start" if stage == "start" else "clips")
     return job.to_dict()
@@ -200,7 +208,7 @@ def rebuild(pid: str, cid: str):
 
 @app.post("/projects/{pid}/clips/{cid}/translate")
 def translate(pid: str, cid: str, body: dict = Body(...)):
-    _project(pid)
+    projects.get_clip(_project(pid), cid)
     return jobs.start("translate", pid, projects.translate_clip, pid, cid, body.get("target", "en")).to_dict()
 
 
@@ -208,6 +216,8 @@ def translate(pid: str, cid: str, body: dict = Body(...)):
 def export(pid: str, body: dict = Body(...)):
     p = _project(pid)
     ids = body.get("clip_ids") or [c["id"] for c in p["clips"]]
+    for cid in ids:
+        projects.get_clip(p, cid)
     if not ids:
         raise HTTPException(400, "No clips to export.")
     return jobs.start("export", pid, projects.export, pid, ids).to_dict()
@@ -232,19 +242,19 @@ def frame(pid: str, t: float = 0.0):
 
 @app.post("/projects/{pid}/clips/{cid}/preview")
 def clip_preview(pid: str, cid: str):
-    _project(pid)
+    projects.get_clip(_project(pid), cid)
     return jobs.start("preview", pid, projects.preview, pid, cid).to_dict()
 
 
 @app.post("/projects/{pid}/clips/{cid}/auto-edit")
 def clip_auto_edit(pid: str, cid: str):
-    _project(pid)
+    projects.get_clip(_project(pid), cid)
     return jobs.start("auto_edit", pid, projects.auto_edit, pid, cid).to_dict()
 
 
 @app.post("/projects/{pid}/clips/{cid}/metadata")
 def clip_metadata(pid: str, cid: str, body: dict = Body(default={})):
-    _project(pid)
+    projects.get_clip(_project(pid), cid)
     return jobs.start("metadata", pid, projects.gen_metadata, pid, cid, body.get("language", "original")).to_dict()
 
 

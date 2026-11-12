@@ -319,11 +319,21 @@ def _thumb(p, clip):
     media.thumbnail(p["source_path"], (clip["start"] + clip["end"]) / 2, t, width=360)
 
 
+class ClipNotFound(KeyError):
+    def __str__(self):
+        return "This clip no longer exists (the clip list was updated). The list has been refreshed — pick the clip again."
+
+
 def get_clip(p, cid):
     for c in p["clips"]:
         if c["id"] == cid:
             return c
-    raise KeyError(cid)
+    raise ClipNotFound(cid)
+
+
+def analyze_running(pid) -> bool:
+    from . import jobs
+    return any(j["project_id"] == pid and j["kind"] == "analyze" and j["status"] == "running" for j in jobs.all_jobs())
 
 
 def update_clip(pid, cid, patch: dict) -> dict:

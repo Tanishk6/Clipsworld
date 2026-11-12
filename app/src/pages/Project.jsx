@@ -58,6 +58,8 @@ export default function Project({ id, onBack }) {
   const [project, setProject] = useState(null);
   const [job, setJob] = useState(null);
   const [sel, setSel] = useState(null);
+  const selRef = useRef(null);
+  useEffect(() => { selRef.current = sel; }, [sel]);
   const [time, setTime] = useState(0);
   const [wave, setWave] = useState(null);
   const [bulk, setBulk] = useState(null);
@@ -82,6 +84,16 @@ export default function Project({ id, onBack }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // the clip list changed on the engine side (e.g. "Find clips again"): reload and keep a valid selection
+  useEffect(() => {
+    const onStale = async () => {
+      const p = await load();
+      if (p && !p.clips.some((c) => c.id === selRef.current)) setSel(p.clips[0]?.id || null);
+    };
+    window.addEventListener("cw-stale", onStale);
+    return () => window.removeEventListener("cw-stale", onStale);
+  }, [load]);
+
   useEffect(() => {
     if (!project) return;
     if (project.status === "ready") {
@@ -91,8 +103,10 @@ export default function Project({ id, onBack }) {
         const t = setTimeout(async () => {
           try {
             const p = await api.project(id);
-            if (p.preview_state !== "making") setProject((x) => ({ ...x, preview_state: p.preview_state }));
-            else setProject((x) => ({ ...x }));
+            setProject((x) => {
+              const same = x.clips.length === p.clips.length && x.clips.every((c, i) => c.id === p.clips[i].id);
+              return same ? { ...x, preview_state: p.preview_state } : p;
+            });
           } catch (_) { /* ignore */ }
         }, 4000);
         return () => clearTimeout(t);
@@ -255,7 +269,7 @@ export default function Project({ id, onBack }) {
         <div className="center-col">
           {clip ? (
             <>
-              <Preview projectId={id} previewState={project.preview_state} clip={clip} styleDef={styles?.styles?.[clip.captions?.style]} videoRef={videoRef} time={time} setTime={setTime}
+              <Preview projectId={id} info={project.info} patch={patch} previewState={project.preview_state} clip={clip} styleDef={styles?.styles?.[clip.captions?.style]} videoRef={videoRef} time={time} setTime={setTime}
                 rendered={rendered[clip.id]} previewBusy={previewBusy} onMakePreview={makePreview}
                 onToggleRendered={(show) => setRendered((r) => ({ ...r, [clip.id]: { ...r[clip.id], show } }))} />
               <Timeline wave={wave} duration={project.info.duration} clip={clip} clips={project.clips} time={time} onSeek={seek}

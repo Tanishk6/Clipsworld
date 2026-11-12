@@ -3,10 +3,11 @@ import { Eye, Loader2, Pause, Play, RotateCcw, Volume2, VolumeX, Radio, Film } f
 import { fmtTime, url } from "../api.js";
 import CaptionOverlay from "./CaptionOverlay.jsx";
 import { buildTimeline, outToSrc } from "../timeline.js";
+import { fitBox } from "./CropPicker.jsx";
 
 const RATIO = { short: 9 / 16, landscape: 16 / 9, square: 1 };
 
-export default function Preview({ projectId, previewState, clip, styleDef, videoRef, time, setTime, rendered, previewBusy, onMakePreview, onToggleRendered }) {
+export default function Preview({ projectId, info, patch, previewState, clip, styleDef, videoRef, time, setTime, rendered, previewBusy, onMakePreview, onToggleRendered }) {
   const showRendered = !!(rendered && rendered.show && rendered.url);
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
@@ -14,6 +15,7 @@ export default function Preview({ projectId, previewState, clip, styleDef, video
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [vidErr, setVidErr] = useState(false);
+  const [dragBox, setDragBox] = useState(null);
   useEffect(() => setVidErr(false), [previewState]);
   const [box, setBox] = useState({ w: 300, h: 533 });
   const layout = clip.layout || {};
@@ -97,6 +99,10 @@ export default function Preview({ projectId, previewState, clip, styleDef, video
   if (layout.mode === "split") {
     vStyle = { position: "absolute", left: 0, bottom: 0, width: "100%", height: `${(1 - splitTop) * 100}%`, objectFit: "cover",
       objectPosition: `${(layout.crop_x ?? 0.5) * 100}% 50%` };
+  } else if (layout.mode === "crop" && layout.box && info?.width) {
+    const b = fitBox(dragBox || layout.box, info.width, info.height, ratio);
+    vStyle = { position: "absolute", objectFit: "fill", maxWidth: "none", maxHeight: "none",
+      width: `${100 / b.w}%`, height: `${100 / b.h}%`, left: `${(-b.x / b.w) * 100}%`, top: `${(-b.y / b.h) * 100}%` };
   } else if (layout.mode === "crop") {
     vStyle = { width: "100%", height: "100%", objectFit: "cover", objectPosition: `${(layout.crop_x ?? 0.5) * 100}% 50%`, transform: `scale(${zoom})`, transformOrigin: `${(layout.crop_x ?? 0.5) * 100}% 50%` };
   } else if (layout.mode === "fit") {
@@ -128,7 +134,42 @@ export default function Preview({ projectId, previewState, clip, styleDef, video
             {rendered.stale && <div className="stale-tag">Changed since this preview — render again</div>}
           </div>
         )}
-        <div className={"frame " + (layout.format || "short")} style={{ width: box.w, height: box.h, display: showRendered ? "none" : undefined }} onClick={toggle}>
+        <div className={"frame " + (layout.format || "short") + (layout.mode === "crop" && layout.box ? " pannable" : "")}
+          style={{ width: box.w, height: box.h, display: showRendered ? "none" : undefined }}
+          onPointerDown={(e) => {
+            if (!(layout.mode === "crop" && layout.box && info?.width)) return;
+            const start = { x: e.clientX, y: e.clientY, b: fitBox(layout.box, info.width, info.height, ratio) };
+            let moved = false, last = null;
+            const move = (ev) => {
+              const dx = ev.clientX - start.x, dy = ev.clientY - start.y;
+              if (!moved && Math.hypot(dx, dy) < 5) return;
+              moved = true;
+              // dragging the picture right shows more of the left side
+              last = fitBox({ x: start.b.x - (dx / box.w) * start.b.w, y: start.b.y - (dy / box.h) * start.b.h, w: start.b.w },
+                info.width, info.height, ratio);
+              setDragBox(last);
+            };
+            const up = () => {
+              window.removeEventListener("pointermove", move);
+              if (moved && last) {
+                patch({ layout: { box: { x: +last.x.toFixed(4), y: +last.y.toFixed(4), w: +last.w.toFixed(4) } } });
+                setTimeout(() => setDragBox(null), 300);
+                e.target.dataset.dragged = "1";
+              }
+            };
+            window.addEventListener("pointermove", move);
+            window.addEventListener("pointerup", up, { once: true });
+          }}
+          onWheel={(e) => {
+            if (!(layout.mode === "crop" && layout.box && info?.width)) return;
+            const b = fitBox(layout.box, info.width, info.height, ratio);
+            const nw = Math.min(1, Math.max(0.08, b.w * (e.deltaY > 0 ? 1.06 : 0.94)));
+            const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+            const nh = b.h * (nw / b.w);
+            const nb = fitBox({ x: cx - nw / 2, y: cy - nh / 2, w: nw }, info.width, info.height, ratio);
+            patch({ layout: { box: { x: +nb.x.toFixed(4), y: +nb.y.toFixed(4), w: +nb.w.toFixed(4) } } }, true);
+          }}
+          onClick={(e) => { if (e.target.dataset.dragged) { delete e.target.dataset.dragged; return; } toggle(); }}>
           <div className="fx-wrap" style={{ transform: `translate(${sx}px, ${sy}px) scale(${fz})`, transition: fz === 1 ? "transform .12s" : "transform .05s" }}>
           {layout.mode === "blur" && <canvas ref={canvasRef} className="bg-canvas" width={180} height={320} />}
           {layout.mode === "split" && <canvas ref={camRef} className="cam-canvas" width={540} height={Math.round(960 * splitTop)} style={{ height: `${splitTop * 100}%` }} />}

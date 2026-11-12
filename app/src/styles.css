@@ -466,3 +466,14 @@ input[type="range"] { width: 100%; accent-color: #c06bff; }
 .dl-badge-ic { color: #bdf6ff; display: grid; }
 .dl-badge-txt { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: #bdf6ff; }
 .update-banner { justify-content: space-between; }
+.frame.pannable { cursor: grab; }
+.frame.pannable:active { cursor: grabbing; }
+.cp-box.crop { border-color: #2de2ff; box-shadow: 0 0 0 1px rgba(0,0,0,.5), 0 0 18px rgba(45,226,255,.5); }
+.cp-box.crop .cp-label { background: #2de2ff; color: #031018; }
+.cp-box.crop .cp-handle { border-color: #2de2ff; }
+.tl-tools { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.tl-tools .icon-btn { width: 26px; height: 26px; }
+.overview { cursor: pointer; height: 12px; }
+.ov-view { position: absolute; top: -2px; bottom: -2px; border: 1.5px solid rgba(255,255,255,.55); border-radius: 4px; background: rgba(255,255,255,.06); pointer-events: none; }
+.tl-main { cursor: grab; }
+.tl-main:active { cursor: grabbing; }

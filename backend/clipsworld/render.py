@@ -39,6 +39,17 @@ def video_filter(info: dict, layout: dict, out_w: int, out_h: int, src: str = "0
                 f"[gp]crop=w='min(iw,ih*{bot_ratio:.5f})/{zoom}':h='min(ih,iw/{bot_ratio:.5f})/{zoom}':"
                 f"x='(iw-ow)*{x:.4f}':y='(ih-oh)/2',scale={out_w}:{bot_h}:flags=lanczos[bot];"
                 f"[top][bot]vstack=inputs=2,setsar=1")
+    box = layout.get("box")
+    if mode == "crop" and box and info.get("width") and info.get("height"):
+        # manual crop box (x, y, w as parts of the source frame; height follows the output shape)
+        bw = min(1.0, max(0.05, float(box.get("w", 0.3))))
+        bh = bw * (info["width"] / info["height"]) / target_ratio
+        if bh > 1.0:
+            bw, bh = bw / bh, 1.0
+        bx = min(1.0 - bw, max(0.0, float(box.get("x", 0.0))))
+        by = min(1.0 - bh, max(0.0, float(box.get("y", 0.0))))
+        return (f"[{src}]crop=w=trunc(iw*{bw:.5f}/2)*2:h=trunc(ih*{bh:.5f}/2)*2:x=iw*{bx:.5f}:y=ih*{by:.5f},"
+                f"scale={out_w}:{out_h}:flags=lanczos,setsar=1")
     if mode == "crop" or abs(src_ratio - target_ratio) < 0.02:
         cw = f"min(iw,ih*{target_ratio:.5f})/{zoom}"
         ch = f"min(ih,iw/{target_ratio:.5f})/{zoom}"

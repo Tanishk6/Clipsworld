@@ -16,6 +16,7 @@ async function req(method, path, body) {
       const j = await r.json();
       msg = j.detail || msg;
     } catch (_) { /* not json */ }
+    if (/no longer exists/i.test(msg)) window.dispatchEvent(new Event("cw-stale"));
     throw new Error(msg);
   }
   return r.json();
@@ -84,7 +85,10 @@ export function waitForJob(id, onTick, interval = 700) {
         onTick && onTick(j);
         if (j.status === "running") return setTimeout(tick, interval);
         if (j.status === "done") resolve(j);
-        else reject(new Error(j.error || j.status));
+        else {
+          if (/no longer exists/i.test(j.error || "")) window.dispatchEvent(new Event("cw-stale"));
+          reject(new Error(j.error || j.status));
+        }
       } catch (e) {
         setTimeout(tick, interval * 2);
       }

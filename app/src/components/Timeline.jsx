@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { ZoomIn, ZoomOut, Crosshair } from "lucide-react";
 import { fmtTime } from "../api.js";
 
 // Waveform timeline around the selected clip, with draggable start/end handles.
@@ -12,9 +13,18 @@ export default function Timeline({ wave, duration, clip, clips, time, onSeek, on
   const e0 = drag ? drag.end : clip.end;
   const len = Math.max(1, clip.end - clip.start);
   const pad = Math.max(8, len * 0.6);
-  const vs = Math.max(0, clip.start - pad);
-  const ve = Math.min(duration, clip.end + pad);
-  const span = Math.max(1, ve - vs);
+  // view window: follows the clip until you scroll / drag / zoom it yourself
+  const [view, setView] = useState(null); // {start, span}
+  useEffect(() => setView(null), [clip.id]);
+  const autoStart = Math.max(0, clip.start - pad);
+  const autoSpan = Math.max(1, Math.min(duration, clip.end + pad) - autoStart);
+  const span = Math.min(duration, Math.max(3, view ? view.span : autoSpan));
+  const vs = Math.min(Math.max(0, duration - span), Math.max(0, view ? view.start : autoStart));
+  const ve = vs + span;
+  const setViewSafe = (start, sp) => {
+    const nsp = Math.min(duration, Math.max(3, sp));
+    setView({ start: Math.min(Math.max(0, duration - nsp), Math.max(0, start)), span: nsp });
+  };
   const x = (t) => ((t - vs) / span) * width;
   const tAt = (px) => vs + (px / width) * span;
 
@@ -83,9 +93,52 @@ export default function Timeline({ wave, duration, clip, clips, time, onSeek, on
     setDrag({ which, start: clip.start, end: clip.end, os: clip.start, oe: clip.end, grab: tAt(ev.clientX - r.left) });
   };
 
+  // drag the empty timeline to move it left/right; a short click seeks
   const click = (ev) => {
     const r = ref.current.getBoundingClientRect();
-    onSeek(tAt(ev.clientX - r.left));
+    const startX = ev.clientX;
+    const v0 = vs;
+    let moved = false;
+    const move = (e) => {
+      const dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) < 4) return;
+      moved = true;
+      setViewSafe(v0 - (dx / width) * span, span);
+    };
+    const up = (e) => {
+      window.removeEventListener("pointermove", move);
+      if (!moved) onSeek(tAt(e.clientX - r.left));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up, { once: true });
+  };
+
+  const wheel = (ev) => {
+    const r = ref.current.getBoundingClientRect();
+    if (ev.shiftKey || Math.abs(ev.deltaX) > Math.abs(ev.deltaY)) {
+      const d = (ev.deltaX || ev.deltaY) / width * span;
+      setViewSafe(vs + d, span);
+      return;
+    }
+    const at = tAt(ev.clientX - r.left);
+    const f = ev.deltaY > 0 ? 1.2 : 1 / 1.2;
+    const nsp = Math.min(duration, Math.max(3, span * f));
+    setViewSafe(at - ((at - vs) / span) * nsp, nsp);
+  };
+
+  const overviewNav = (ev) => {
+    const el = ev.currentTarget;
+    const go = (e) => {
+      const r = el.getBoundingClientRect();
+      const t = Math.min(duration, Math.max(0, ((e.clientX - r.left) / r.width) * duration));
+      setViewSafe(t - span / 2, span);
+      return t;
+    };
+    const t = go(ev);
+    onSeek(t);
+    const move = (e) => go(e);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", () => window.removeEventListener("pointermove", move), { once: true });
   };
 
   const ticks = [];
@@ -94,14 +147,23 @@ export default function Timeline({ wave, duration, clip, clips, time, onSeek, on
 
   return (
     <div className="timeline">
-      <div className="overview" title="Whole video — click to jump">
+      <div className="tl-tools">
+        <span className="muted tiny">Drag the timeline to move it · scroll to zoom · drag the purple box to move the clip</span>
+        <div className="row gap">
+          <button className="icon-btn" title="Zoom out" onClick={() => setViewSafe(vs - span * 0.25, span * 1.5)}><ZoomOut size={15} /></button>
+          <button className="icon-btn" title="Zoom in" onClick={() => setViewSafe(vs + span * 0.17, span / 1.5)}><ZoomIn size={15} /></button>
+          <button className="icon-btn" title="Back to this clip" onClick={() => setView(null)}><Crosshair size={15} /></button>
+        </div>
+      </div>
+      <div className="overview" title="Whole video — click or drag to move around" onPointerDown={overviewNav}>
+        <span className="ov-view" style={{ left: `${(vs / duration) * 100}%`, width: `${(span / duration) * 100}%` }} />
         {clips.map((c) => (
           <span key={c.id} className={"ov-clip" + (c.id === clip.id ? " on" : "")}
             style={{ left: `${(c.start / duration) * 100}%`, width: `${Math.max(0.4, ((c.end - c.start) / duration) * 100)}%` }} />
         ))}
         <span className="ov-head" style={{ left: `${(time / duration) * 100}%` }} />
       </div>
-      <div className="tl-main" ref={ref} onPointerDown={click}>
+      <div className="tl-main" ref={ref} onPointerDown={click} onWheel={wheel}>
         <canvas ref={canvasRef} style={{ width: "100%", height: 78 }} />
         <div className="tl-region" style={{ left: x(s0), width: Math.max(2, x(e0) - x(s0)) }} onPointerDown={begin("move")}>
           <div className="tl-handle l" onPointerDown={begin("start")}><span /></div>

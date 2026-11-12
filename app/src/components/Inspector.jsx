@@ -6,6 +6,7 @@ import EffectsPanel from "./EffectsPanel.jsx";
 import AudioPanel from "./AudioPanel.jsx";
 import ExportPanel from "./ExportPanel.jsx";
 import CamPicker from "./CamPicker.jsx";
+import CropPicker, { defaultBox } from "./CropPicker.jsx";
 
 const LANGS = [
   { id: "original", label: "Original (as spoken)" },
@@ -199,7 +200,21 @@ export default function Inspector({ project, setProject, clip, patch, replaceCli
                 </div>
               </>
             )}
-            {(lay.mode === "crop" || lay.mode === "split") && (
+            {lay.mode === "crop" && (
+              <div className="field">
+                <div className="row between">
+                  <label>Choose what shows in the Short</label>
+                  {lay.box
+                    ? <button className="btn ghost sm" onClick={() => patch({ layout: { box: null } })}>Auto center</button>
+                    : <button className="btn ghost sm" onClick={() => patch({ layout: { box: defaultBox(project.info.width, project.info.height, { short: 9 / 16, square: 1, landscape: 16 / 9 }[lay.format || "short"]) } })}>Adjust manually</button>}
+                </div>
+                <CropPicker projectId={project.id} t={clip.start + Math.min(2, (clip.end - clip.start) / 2)} info={project.info}
+                  targetRatio={{ short: 9 / 16, square: 1, landscape: 16 / 9 }[lay.format || "short"]}
+                  box={lay.box} onChange={(box) => patch({ layout: { box } })} />
+                <p className="hint">Drag the box to move it. Drag its corner to make it bigger or smaller (smaller = more zoom). You can also drag the video in the preview.</p>
+              </div>
+            )}
+            {((lay.mode === "crop" && !lay.box) || lay.mode === "split") && (
               <div className="field">
                 <label>Crop position <span className="muted">{Math.round((lay.crop_x ?? 0.5) * 100)}%</span></label>
                 <input type="range" min="0" max="1" step="0.01" value={lay.crop_x ?? 0.5}
@@ -207,11 +222,11 @@ export default function Inspector({ project, setProject, clip, patch, replaceCli
                 <div className="row between muted tiny"><span>Left</span><span>Center</span><span>Right</span></div>
               </div>
             )}
-            <div className="field">
+            {!(lay.mode === "crop" && lay.box) && <div className="field">
               <label>Zoom <span className="muted">{(lay.zoom || 1).toFixed(2)}×</span></label>
               <input type="range" min="1" max="2" step="0.05" value={lay.zoom || 1}
                 onChange={(e) => patch({ layout: { zoom: Number(e.target.value) } }, true)} />
-            </div>
+            </div>}
           </>
         )}
 
