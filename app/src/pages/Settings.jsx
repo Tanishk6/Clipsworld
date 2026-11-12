@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Check, Cpu, ExternalLink, FolderOpen, KeyRound, Loader2, Save, Sparkles, Zap, Mic, Scissors, Settings as Cog } from "lucide-react";
 import { api, desktop, waitForJob } from "../api.js";
 import { useApp, useToast } from "../App.jsx";
@@ -32,6 +32,7 @@ export default function Settings() {
   const [testing, setTesting] = useState(false);
   const [gpu, setGpu] = useState(null);
   const [gpuJob, setGpuJob] = useState(null);
+  const gpuStarting = useRef(false);
 
   useEffect(() => { setS(settings); }, [settings]);
   useEffect(() => { api.gpu().then(setGpu).catch(() => {}); }, []);
@@ -78,6 +79,8 @@ export default function Settings() {
   };
 
   const installGpu = async () => {
+    if (gpuStarting.current) return;
+    gpuStarting.current = true;
     setGpuJob({ progress: 0, stage: "Starting download…" });
     try {
       const j = await api.installGpu();
@@ -85,7 +88,7 @@ export default function Settings() {
       toast("GPU pack installed. Transcription will use your NVIDIA GPU.", "ok");
       setGpu(await api.gpu());
     } catch (e) { toast(e.message, "error"); }
-    finally { setGpuJob(null); }
+    finally { setGpuJob(null); gpuStarting.current = false; }
   };
 
   const pickFolder = async () => {
