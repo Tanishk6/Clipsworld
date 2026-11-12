@@ -234,7 +234,7 @@ def find_clips(job, segments, loud, duration, settings) -> list:
     return picked
 
 
-def translate_lines(job, lines: list, target: str, settings: dict) -> list:
+def translate_lines(job, lines: list, target: str, settings: dict, context: str = "") -> list:
     key, model = settings.get("claude_api_key", ""), settings.get("claude_model", "claude-haiku-5-5")
     if target not in LANG_NAMES:
         raise AIError(f"Unknown language: {target}")
@@ -244,10 +244,22 @@ def translate_lines(job, lines: list, target: str, settings: dict) -> list:
         part = lines[i:i + batch]
         if job:
             job.update(progress=i / max(1, len(lines)), stage=f"Translating captions to {target}…")
-        system = ("You translate short video captions. Keep the meaning, slang, jokes and energy. "
-                  "Keep each line short and natural for on-screen captions. Do not add or merge lines. "
-                  'Reply with JSON only: {"lines": ["...", "..."]} with exactly the same number of lines.')
-        user = (f"Translate every line into {LANG_NAMES[target]}.\n" +
+        system = ("You convert short on-screen video captions for an Indian YouTube Shorts channel. "
+                  "The lines are consecutive pieces of the same speech and come from automatic speech "
+                  "recognition, so they can contain misheard words: fix words that are clearly misheard "
+                  "using the context, but never invent new content. Keep slang, jokes and energy. "
+                  "Every output line must stay short and match its input line (same order, same count). "
+                  "Never merge, split, skip or add lines. Return the result with the answer tool: "
+                  '{"lines": ["...", "..."]}.')
+        if target == "hinglish":
+            rule = ("Write every line in Hinglish: Hindi words in simple Roman letters the way Indian "
+                    "YouTubers type (e.g. 'bhai ye kya ho gaya', 'mujhe nahi pata', 'chalo shuru karte hain'). "
+                    "Do NOT translate Hindi into English — keep the Hindi words, just write them in Roman letters. "
+                    "Keep English words as English. Use common spellings (hai, nahi, kya, bhai, yaar, accha).")
+        else:
+            rule = f"Translate every line into {LANG_NAMES[target]}."
+        ctx = f"What the video is about: {context}\n" if context else ""
+        user = (f"{rule}\n{ctx}Number of lines: {len(part)}\n" +
                 json.dumps({"lines": part}, ensure_ascii=False))
         got = []
         for attempt in range(3):

@@ -5,7 +5,8 @@ import { useApp, useToast } from "../App.jsx";
 import { DownloadRow } from "../components/Downloads.jsx";
 
 const WHISPER = [
-  { id: "large-v3-turbo", label: "Best — large-v3-turbo (1.6 GB, recommended with GPU)" },
+  { id: "large-v3", label: "Best for Hindi — large-v3 (3 GB, use with NVIDIA GPU)" },
+  { id: "large-v3-turbo", label: "Fast & good — large-v3-turbo (1.6 GB)" },
   { id: "medium", label: "Great — medium (1.5 GB)" },
   { id: "small", label: "Good — small (480 MB, fast on CPU)" },
   { id: "base", label: "Basic — base (145 MB)" },
@@ -136,8 +137,8 @@ export default function Settings() {
           <div className="field">
             <label>Language in your videos</label>
             <select value={s.language} onChange={(e) => set("language", e.target.value)}>
-              <option value="mixed">Hindi + English mixed (recommended)</option>
-              <option value="hi">Hindi / Hinglish only</option>
+              <option value="mixed">Auto: Hindi, English or both (recommended)</option>
+              <option value="hi">Hindi / Hinglish only (never English)</option>
               <option value="en">English only</option>
               <option value="auto">Auto detect (one language)</option>
             </select>

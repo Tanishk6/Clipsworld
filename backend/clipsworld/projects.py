@@ -193,6 +193,10 @@ def find_clips(job, p: dict, s: dict, base: float = 0.0):
         warning = "Tip: add your Claude API key in Settings for much smarter clip picks."
     p = load(p["id"])
     keep = [c for c in p.get("clips", []) if c.get("pinned") or c.get("exports")]
+    for k in keep:  # transcript may be new: refresh their captions too
+        _defaults(k)
+        if not any(q.get("edited") for q in k["captions"].get("cues", [])):
+            rebuild_cues(p, k)
     fresh = [c for c in found if all(c["end"] <= k["start"] or c["start"] >= k["end"] for k in keep)]
     lang = s.get("caption_language", "hinglish")
     made = []
@@ -297,7 +301,8 @@ def apply_translation(clip: dict, target: str, s: dict, job=None) -> bool:
     lines = [q["text"] for q in cues] + ([hook] if hook_needs else [])
     if lines:
         try:
-            out = ai.translate_lines(job, lines, target, s)
+            ctx = " · ".join(x for x in (clip.get("title"), clip.get("reason")) if x)
+            out = ai.translate_lines(job, lines, target, s, context=ctx[:200])
         except ai.AIError:
             return False
         for q, t in zip(cues, out):

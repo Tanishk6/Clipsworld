@@ -20,6 +20,7 @@ WHISPER_REPOS = {
     "small": "Systran/faster-whisper-small",
     "medium": "Systran/faster-whisper-medium",
     "large-v3-turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
+    "large-v3": "Systran/faster-whisper-large-v3",
 }
 MODEL_FILES = {"config.json", "model.bin", "tokenizer.json", "vocabulary.json", "vocabulary.txt",
                "preprocessor_config.json"}

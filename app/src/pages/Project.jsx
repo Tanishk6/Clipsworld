@@ -181,6 +181,17 @@ export default function Project({ id, onBack }) {
     } catch (e) { toast(e.message, "error"); }
   };
 
+  const retranscribe = async () => {
+    if (!confirm("Transcribe this video again with your current Settings? Clips you exported or made yourself are kept and get new captions.")) return;
+    try {
+      await api.reanalyze(id, "start");
+      setSel(null);
+      setWave(null);
+      setProject((p) => ({ ...p, status: "working", stage: "Starting…" }));
+      setTimeout(load, 300);
+    } catch (e) { toast(e.message, "error"); }
+  };
+
   const exportAll = async () => {
     if (!project.clips.length) return;
     if (!confirm(`Export all ${project.clips.length} clips?`)) return;
@@ -203,12 +214,13 @@ export default function Project({ id, onBack }) {
         <h2 title={project.name}>{project.name}</h2>
         <div className="muted tiny">
           {project.info && <>{fmtTime(project.info.duration)} · {project.info.width}×{project.info.height}</>}
-          {project.transcript && <> · {project.transcript.mixed ? "Hindi + English" : (project.transcript.language || "").toUpperCase()} · {project.transcript.device?.toUpperCase()}</>}
+          {project.transcript && <> · {project.transcript.mode === "both" || project.transcript.mixed ? "Hindi + English" : project.transcript.language === "hi" ? "Hindi" : (project.transcript.language || "").toUpperCase()} · {project.transcript.device?.toUpperCase()}</>}
         </div>
       </div>
       <div className="ph-actions">
         {project.status === "ready" && (
           <>
+            <button className="btn ghost" onClick={retranscribe} title="Listen to the video again with your current Settings (language, accuracy)"><AudioLines size={15} /> Transcribe again</button>
             <button className="btn ghost" onClick={refind}><RefreshCw size={15} /> Find clips again</button>
             <button className="btn primary" onClick={exportAll} disabled={!!bulk || !project.clips.length}>
               {bulk ? <><Loader2 size={15} className="spin" /> {Math.round(bulk.progress * 100)}%</> : <><Download size={15} /> Export all</>}
