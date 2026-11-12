@@ -1,0 +1,14 @@
+Caption fonts bundled with Clipsworld (all free to use and redistribute):
+
+Montserrat (Black, ExtraBold) - SIL Open Font License 1.1 - github.com/JulietaUla/Montserrat
+Poppins ExtraBold             - SIL Open Font License 1.1 - Google Fonts
+Mukta ExtraBold               - SIL Open Font License 1.1 - Google Fonts
+Anton                         - SIL Open Font License 1.1 - Google Fonts
+Bebas Neue                    - SIL Open Font License 1.1 - Google Fonts
+Bangers                       - SIL Open Font License 1.1 - Google Fonts
+Archivo Black                 - SIL Open Font License 1.1 - Google Fonts
+Lilita One                    - SIL Open Font License 1.1 - Google Fonts
+Press Start 2P                - SIL Open Font License 1.1 - Google Fonts
+Luckiest Guy                  - Apache License 2.0        - Google Fonts
+
+Full license texts: https://openfontlicense.org and https://www.apache.org/licenses/LICENSE-2.0

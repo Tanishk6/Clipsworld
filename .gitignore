@@ -1,0 +1,10 @@
+node_modules/
+app/dist/
+app/release/
+dist-backend/
+build-py/
+resources/ffmpeg/
+__pycache__/
+*.pyc
+.DS_Store
+smoke-data/
