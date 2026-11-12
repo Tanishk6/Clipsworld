@@ -5,6 +5,7 @@ import Home from "./pages/Home.jsx";
 import Project from "./pages/Project.jsx";
 import Exports from "./pages/Exports.jsx";
 import Settings from "./pages/Settings.jsx";
+import { DownloadsBadge, DownloadsProvider } from "./components/Downloads.jsx";
 
 const ToastCtx = createContext(() => {});
 export const useToast = () => useContext(ToastCtx);
@@ -127,6 +128,7 @@ export default function App() {
   return (
     <AppCtx.Provider value={{ settings, styles, refreshSettings, go }}>
       <ToastCtx.Provider value={toast}>
+      <DownloadsProvider>
         <div className="shell">
           <div className="titlebar">
             <div className="tb-brand"><Logo size={18} /><span>Clipsworld</span></div>
@@ -144,6 +146,7 @@ export default function App() {
               );
             })}
             <div className="side-spacer" />
+            <DownloadsBadge onClick={() => go("settings")} />
             <div className={"ai-pill " + (settings.has_api_key ? "on" : "off")} title={settings.has_api_key ? "Claude AI connected" : "Add Claude API key in Settings"} onClick={() => go("settings")}>
               <Sparkles size={15} />
               <span>{settings.has_api_key ? "AI on" : "AI off"}</span>
@@ -161,6 +164,7 @@ export default function App() {
             <div key={t.id} className={"toast " + t.kind}>{t.msg}</div>
           ))}
         </div>
+      </DownloadsProvider>
       </ToastCtx.Provider>
     </AppCtx.Provider>
   );

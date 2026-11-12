@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld("clipsworld", {
   showItem: (p) => ipcRenderer.invoke("show-item", p),
   openExternal: (u) => ipcRenderer.invoke("open-external", u),
   backendLog: () => ipcRenderer.invoke("backend-log"),
+  appInfo: () => ipcRenderer.invoke("app-info"),
+  checkUpdate: () => ipcRenderer.invoke("check-update"),
   restartBackend: () => ipcRenderer.invoke("restart-backend"),
   pathForFile: (file) => {
     try { return webUtils.getPathForFile(file); } catch (_) { return file && file.path; }

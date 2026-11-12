@@ -14,7 +14,7 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -67,7 +67,31 @@ def gpu_status():
 
 @app.post("/gpu/install")
 def gpu_install():
-    return jobs.start("gpu", None, gpu.install_pack).to_dict()
+    return gpu.install_pack()
+
+
+@app.get("/downloads")
+def downloads_list():
+    from clipsworld import downloads
+    return downloads.all_status(settings_mod.load().get("whisper_model", "large-v3-turbo"))
+
+
+@app.post("/downloads/{key}/start")
+def download_start(key: str):
+    from clipsworld import downloads
+    try:
+        return downloads.start(key)
+    except (KeyError, RuntimeError) as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/downloads/{key}/pause")
+def download_pause(key: str):
+    from clipsworld import downloads
+    try:
+        return downloads.pause(key)
+    except KeyError as e:
+        raise HTTPException(400, str(e))
 
 
 # ------------------------------------------------------------ projects

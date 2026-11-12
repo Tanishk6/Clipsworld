@@ -17,6 +17,8 @@ export default function Home({ onOpen }) {
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
   const timer = useRef(null);
+  const [update, setUpdate] = useState(null);
+  useEffect(() => { desktop?.checkUpdate?.().then(setUpdate).catch(() => {}); }, []);
 
   const load = async () => {
     try {
@@ -72,6 +74,12 @@ export default function Home({ onOpen }) {
 
   return (
     <div className="page home">
+      {update && (
+        <div className="banner tip update-banner">
+          <Zap size={15} /> A new Clipsworld build is ready (build {update.latest}). Install it over this one — your projects and settings stay.
+          <button className="btn primary sm" onClick={() => desktop.openExternal(update.url)}>Download update</button>
+        </div>
+      )}
       <section className="hero">
         <div className="hero-text">
           <div className="eyebrow"><Zap size={14} /> AI clipping studio</div>

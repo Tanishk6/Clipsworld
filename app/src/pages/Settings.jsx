@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Check, Cpu, ExternalLink, FolderOpen, KeyRound, Loader2, Save, Sparkles, Zap, Mic, Scissors, Settings as Cog } from "lucide-react";
-import { api, desktop, waitForJob } from "../api.js";
+import { api, desktop } from "../api.js";
 import { useApp, useToast } from "../App.jsx";
+import { DownloadRow } from "../components/Downloads.jsx";
 
 const WHISPER = [
   { id: "large-v3-turbo", label: "Best — large-v3-turbo (1.6 GB, recommended with GPU)" },
@@ -31,23 +32,33 @@ export default function Settings() {
   const [key, setKey] = useState("");
   const [testing, setTesting] = useState(false);
   const [gpu, setGpu] = useState(null);
-  const [gpuJob, setGpuJob] = useState(null);
-  const gpuStarting = useRef(false);
 
-  useEffect(() => { setS(settings); }, [settings]);
+
+  useEffect(() => { if (saved) setS(settings); }, [settings]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { api.gpu().then(setGpu).catch(() => {}); }, []);
 
-  const set = (k, v) => setS((x) => ({ ...x, [k]: v }));
+  const saveTimer = useRef(null);
+  const [saved, setSaved] = useState(true);
 
-  const save = async (extra = {}) => {
+  const save = async (next, quiet = false) => {
     try {
-      const body = { ...s, ...extra };
+      const body = { ...(next || s) };
       delete body.has_api_key; delete body.api_key_hint;
       await api.saveSettings(body);
       await refreshSettings();
-      toast("Settings saved", "ok");
+      setSaved(true);
+      if (!quiet) toast("Settings saved", "ok");
     } catch (e) { toast(e.message, "error"); }
   };
+
+  // every change saves itself (no need to remember the Save button)
+  const set = (k, v) => setS((x) => {
+    const next = { ...x, [k]: v };
+    setSaved(false);
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => save(next, true), 700);
+    return next;
+  });
 
   const saveKey = async () => {
     if (!key.trim()) return;
@@ -76,19 +87,6 @@ export default function Settings() {
       const r = await api.testKey({ claude_model: s.claude_model });
       r.ok ? toast(`Working ✓ (${r.model})`, "ok") : toast(r.error, "error");
     } finally { setTesting(false); }
-  };
-
-  const installGpu = async () => {
-    if (gpuStarting.current) return;
-    gpuStarting.current = true;
-    setGpuJob({ progress: 0, stage: "Starting download…" });
-    try {
-      const j = await api.installGpu();
-      await waitForJob(j.id, (x) => setGpuJob({ progress: x.progress, stage: x.stage }), 1000);
-      toast("GPU pack installed. Transcription will use your NVIDIA GPU.", "ok");
-      setGpu(await api.gpu());
-    } catch (e) { toast(e.message, "error"); }
-    finally { setGpuJob(null); gpuStarting.current = false; }
   };
 
   const pickFolder = async () => {
@@ -150,7 +148,9 @@ export default function Settings() {
               {WHISPER.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
             </select>
           </div>
-          <div className="field">
+          <DownloadRow dkey={`model:${s.whisper_model}`} title={`Speech model: ${s.whisper_model}`} startLabel="Download now"
+            hint="Downloads automatically with your first video if you skip this. Pause/resume anytime." />
+          <div className="field" style={{ marginTop: 16 }}>
             <label>Run on</label>
             <select value={s.device} onChange={(e) => set("device", e.target.value)}>
               <option value="auto">Auto (GPU if ready, else CPU)</option>
@@ -167,15 +167,9 @@ export default function Settings() {
                 <div><span className="muted tiny">NVIDIA GPUs found</span><b>{gpu.nvidia_gpus}</b></div>
                 <div><span className="muted tiny">GPU pack</span><b>{gpu.pack_installed ? "Installed ✓" : "Not installed"}</b></div>
               </div>
-              {gpu.platform_supported && gpu.nvidia_gpus > 0 && !gpu.pack_installed && (
-                gpuJob ? (
-                  <>
-                    <div className="pbar"><span style={{ width: `${gpuJob.progress * 100}%` }} /></div>
-                    <p className="hint">{gpuJob.stage}</p>
-                  </>
-                ) : (
-                  <button className="btn primary" onClick={installGpu}><Zap size={15} /> Download GPU pack (~1 GB, one time)</button>
-                )
+              {gpu.platform_supported && gpu.nvidia_gpus > 0 && (
+                <DownloadRow dkey="gpu" title="GPU pack (~1.2 GB, one time)" startLabel="Download"
+                  hint="Downloads in the background — you can keep using the app, pause, and resume anytime (even after closing it)." />
               )}
               {gpu.nvidia_gpus === 0 && <p className="hint">No NVIDIA GPU detected — Clipsworld will use the CPU. Update your NVIDIA driver if you have one.</p>}
             </>
@@ -212,7 +206,7 @@ export default function Settings() {
         </Card>
       </div>
       <div className="save-bar">
-        <button className="btn primary lg" onClick={() => save()}><Save size={17} /> Save settings</button>
+        <button className="btn primary lg" onClick={() => save()} disabled={saved}><Save size={17} /> {saved ? "All changes saved ✓" : "Saving…"}</button>
       </div>
     </div>
   );

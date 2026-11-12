@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = [], [], []
 for pkg in ["faster_whisper", "ctranslate2", "onnxruntime", "av", "tokenizers",
-            "huggingface_hub", "yt_dlp", "anthropic", "uvicorn", "fastapi", "starlette"]:
+            "huggingface_hub", "yt_dlp", "yt_dlp_ejs", "anthropic", "uvicorn", "fastapi", "starlette"]:
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b
@@ -14,7 +14,7 @@ a = Analysis(
     pathex=["."],
     binaries=binaries,
     datas=datas,
-    hiddenimports=hiddenimports + ["clipsworld", "clipsworld.ai", "clipsworld.captions", "clipsworld.effects", "clipsworld.gpu", "clipsworld.originality",
+    hiddenimports=hiddenimports + ["clipsworld", "clipsworld.ai", "clipsworld.captions", "clipsworld.downloads", "clipsworld.effects", "clipsworld.gpu", "clipsworld.originality",
                                    "clipsworld.highlights", "clipsworld.jobs", "clipsworld.media",
                                    "clipsworld.paths", "clipsworld.projects", "clipsworld.render",
                                    "clipsworld.settings", "clipsworld.transcribe", "clipsworld.ytdl"],

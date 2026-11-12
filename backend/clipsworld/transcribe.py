@@ -3,8 +3,7 @@ import os
 import wave
 import threading
 
-from . import gpu
-from .paths import models_dir
+from . import downloads, gpu
 
 MODEL_SIZES_MB = {"tiny": 75, "base": 145, "small": 480, "medium": 1500, "large-v3-turbo": 1600}
 
@@ -19,13 +18,12 @@ def _load(name: str, device: str):
             return _cache[key]
         gpu.activate()
         from faster_whisper import WhisperModel
+        path = str(downloads.model_path(name))
         if device == "cuda":
-            model = WhisperModel(name, device="cuda", compute_type="int8_float16",
-                                 download_root=str(models_dir()))
+            model = WhisperModel(path, device="cuda", compute_type="int8_float16")
         else:
-            model = WhisperModel(name, device="cpu", compute_type="int8",
-                                 cpu_threads=max(1, (os.cpu_count() or 4)),
-                                 download_root=str(models_dir()))
+            model = WhisperModel(path, device="cpu", compute_type="int8",
+                                 cpu_threads=max(1, (os.cpu_count() or 4)))
         _cache.clear()  # keep only one model in memory
         _cache[key] = model
         return model
@@ -115,8 +113,8 @@ def _run_mixed(job, model, device, wav_path, duration):
 
 
 def _run(job, name, device, wav_path, duration, lang):
-    mb = MODEL_SIZES_MB.get(name, 500)
-    job.update(stage=f"Loading speech model ({name}, {device.upper()}) — first run downloads ~{mb} MB…")
+    downloads.wait_for(f"model:{name}", job, "Downloading speech model")
+    job.update(stage=f"Loading speech model ({name}, {device.upper()})…")
     model = _load(name, device)
     if lang == "mixed":
         r = _run_mixed(job, model, device, wav_path, duration)

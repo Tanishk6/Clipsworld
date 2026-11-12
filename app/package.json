@@ -1,7 +1,7 @@
 {
   "name": "clipsworld",
   "productName": "Clipsworld",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AI clipping studio: turn long videos and streams into captioned Shorts.",
   "author": "Overworld Studio",
   "main": "electron/main.cjs",
@@ -32,7 +32,8 @@
       "dist/**",
       "electron/**",
       "build/icon.png",
-      "package.json"
+      "package.json",
+      "build-info.json"
     ],
     "extraResources": [
       {
@@ -50,6 +51,10 @@
       {
         "from": "../resources/sfx",
         "to": "sfx"
+      },
+      {
+        "from": "../resources/deno",
+        "to": "deno"
       }
     ],
     "win": {

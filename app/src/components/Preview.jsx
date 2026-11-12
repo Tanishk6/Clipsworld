@@ -5,13 +5,15 @@ import CaptionOverlay from "./CaptionOverlay.jsx";
 
 const RATIO = { short: 9 / 16, landscape: 16 / 9, square: 1 };
 
-export default function Preview({ projectId, clip, styleDef, videoRef, time, setTime, rendered, previewBusy, onMakePreview, onToggleRendered }) {
+export default function Preview({ projectId, previewState, clip, styleDef, videoRef, time, setTime, rendered, previewBusy, onMakePreview, onToggleRendered }) {
   const showRendered = !!(rendered && rendered.show && rendered.url);
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const camRef = useRef(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [vidErr, setVidErr] = useState(false);
+  useEffect(() => setVidErr(false), [previewState]);
   const [box, setBox] = useState({ w: 300, h: 533 });
   const layout = clip.layout || {};
   const ratio = RATIO[layout.format] || RATIO.short;
@@ -129,7 +131,8 @@ export default function Preview({ projectId, clip, styleDef, videoRef, time, set
           {layout.mode === "split" && <canvas ref={camRef} className="cam-canvas" width={540} height={Math.round(960 * splitTop)} style={{ height: `${splitTop * 100}%` }} />}
           <video
             ref={videoRef}
-            src={url.media(projectId)}
+            src={url.media(projectId, previewState || "")}
+            onError={() => setVidErr(true)}
             style={vStyle}
             muted={muted}
             playsInline
@@ -142,7 +145,13 @@ export default function Preview({ projectId, clip, styleDef, videoRef, time, set
           {(clip.effects || []).filter((e) => Math.abs(time - clip.start - e.t) < 0.6 && e.type !== "sfx").slice(0, 1).map((e) => (
             <div key={e.id} className="fx-flash">{e.type === "text" || e.type === "freeze" ? e.text : e.type.toUpperCase()}</div>
           ))}
-          {!playing && <div className="play-hint"><Play size={36} fill="currentColor" /></div>}
+          {!playing && !vidErr && <div className="play-hint"><Play size={36} fill="currentColor" /></div>}
+          {vidErr && (
+            <div className="vid-wait">
+              {previewState === "making" ? <><Loader2 size={26} className="spin" /><b>Preparing a playable preview…</b><span>This video format needs a quick conversion to play here. You can still edit captions, effects and export.</span></>
+                : <><b>Can't play this video here</b><span>Exports still work. Try “Render preview” to see the result.</span></>}
+            </div>
+          )}
         </div>
       </div>
       <div className="mode-row">

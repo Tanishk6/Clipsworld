@@ -4,7 +4,7 @@ Only use this for your own videos or videos you have permission to clip.
 """
 from pathlib import Path
 
-from .paths import tool
+from .paths import IS_WIN, resources_dir, tool
 
 
 def download(job, url: str, dest_dir: Path) -> dict:
@@ -32,7 +32,13 @@ def download(job, url: str, dest_dir: Path) -> dict:
         "quiet": True,
         "no_warnings": True,
         "restrictfilenames": True,
+        "retries": 10,
+        "fragment_retries": 10,
+        "continuedl": True,
     }
+    deno = resources_dir() / "deno" / ("deno.exe" if IS_WIN else "deno")
+    if deno.exists():  # YouTube needs a JavaScript runtime for its player code
+        opts["js_runtimes"] = {"deno": {"path": str(deno)}}
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=True)
         path = Path(ydl.prepare_filename(info)).with_suffix(".mp4")

@@ -87,6 +87,16 @@ export default function Project({ id, onBack }) {
     if (project.status === "ready") {
       if (!wave) api.waveform(id).then(setWave).catch(() => {});
       if (!sel && project.clips.length) setSel(project.clips[0].id);
+      if (project.preview_state === "making") {
+        const t = setTimeout(async () => {
+          try {
+            const p = await api.project(id);
+            if (p.preview_state !== "making") setProject((x) => ({ ...x, preview_state: p.preview_state }));
+            else setProject((x) => ({ ...x }));
+          } catch (_) { /* ignore */ }
+        }, 4000);
+        return () => clearTimeout(t);
+      }
       return;
     }
     if (project.status === "error") return;
@@ -233,7 +243,7 @@ export default function Project({ id, onBack }) {
         <div className="center-col">
           {clip ? (
             <>
-              <Preview projectId={id} clip={clip} styleDef={styles?.styles?.[clip.captions?.style]} videoRef={videoRef} time={time} setTime={setTime}
+              <Preview projectId={id} previewState={project.preview_state} clip={clip} styleDef={styles?.styles?.[clip.captions?.style]} videoRef={videoRef} time={time} setTime={setTime}
                 rendered={rendered[clip.id]} previewBusy={previewBusy} onMakePreview={makePreview}
                 onToggleRendered={(show) => setRendered((r) => ({ ...r, [clip.id]: { ...r[clip.id], show } }))} />
               <Timeline wave={wave} duration={project.info.duration} clip={clip} clips={project.clips} time={time} onSeek={seek}

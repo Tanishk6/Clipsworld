@@ -57,6 +57,9 @@ export const api = {
     return r.json();
   },
   sfx: () => req("GET", "/sfx"),
+  downloads: () => req("GET", "/downloads"),
+  startDownload: (key) => req("POST", `/downloads/${encodeURIComponent(key)}/start`),
+  pauseDownload: (key) => req("POST", `/downloads/${encodeURIComponent(key)}/pause`),
   effectDefaults: () => req("GET", "/effects/defaults"),
   jobs: () => req("GET", "/jobs"),
   job: (id) => req("GET", `/jobs/${id}`),
@@ -64,7 +67,7 @@ export const api = {
 };
 
 export const url = {
-  media: (id) => `${BASE}/projects/${id}/media`,
+  media: (id, v = "") => `${BASE}/projects/${id}/media?v=${v}`,
   cover: (id, v = "") => `${BASE}/projects/${id}/cover?v=${v}`,
   thumb: (id, cid, v = "") => `${BASE}/projects/${id}/thumb/${cid}?v=${v}`,
   file: (p) => `${BASE}/file?path=${encodeURIComponent(p)}`,

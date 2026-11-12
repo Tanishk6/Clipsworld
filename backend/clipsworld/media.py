@@ -128,6 +128,6 @@ def thumbnail(src: str, at: float, dst: Path, width: int = 480):
 
 def make_preview(src: str, dst: Path, duration: float, on_progress=None):
     """Small browser-friendly H.264 copy, used when the source can't play in the app."""
-    run_ffmpeg(["-i", src, "-vf", "scale=-2:'min(720,ih)'", "-c:v", "libx264", "-preset", "veryfast",
-                "-crf", "28", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", str(dst)],
+    run_ffmpeg(["-i", src, "-vf", "scale=-2:'min(540,ih)'", "-c:v", "libx264", "-preset", "ultrafast",
+                "-crf", "30", "-tune", "fastdecode", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", str(dst)],
                duration, on_progress)

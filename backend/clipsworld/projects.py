@@ -48,11 +48,20 @@ def summary(p: dict) -> dict:
     }
 
 
+_summary_cache: dict = {}
+
+
 def list_all() -> list:
     out = []
     for d in projects_dir().iterdir():
+        f = d / "project.json"
         try:
-            out.append(summary(load(d.name)))
+            m = f.stat().st_mtime
+            hit = _summary_cache.get(d.name)
+            if not hit or hit[0] != m:
+                hit = (m, summary(load(d.name)))
+                _summary_cache[d.name] = hit
+            out.append(hit[1])
         except Exception:
             continue
     return sorted(out, key=lambda p: -(p.get("updated") or 0))
@@ -136,12 +145,23 @@ def analyze(job, pid: str, from_stage: str = "start"):
         info = p["info"]
         need_preview = (Path(p["source_path"]).suffix.lower() not in PLAYABLE_EXT
                         or info.get("vcodec") not in PLAYABLE_CODECS)
-        if need_preview and not (d / "preview.mp4").exists():
-            _set(p, stage="Making a preview copy…")
-            media.make_preview(p["source_path"], d / "preview.mp4", info["duration"],
-                               lambda x: job.update(progress=0.92 + 0.08 * x, stage="Making a preview copy…"))
-        _set(p, status="ready", stage="Ready", error=None)
-        return {"project_id": pid, "clips": len(p["clips"])}
+        has_preview = (d / "preview.mp4").exists()
+        # the project is usable right away; the playable preview copy is made after
+        _set(p, status="ready", stage="Ready", error=None,
+             preview_state="making" if need_preview and not has_preview else ("ready" if has_preview else "not_needed"))
+        if need_preview and not has_preview:
+            tmp = d / "preview.tmp.mp4"
+            try:
+                media.make_preview(p["source_path"], tmp, info["duration"],
+                                   lambda x: job.update(progress=0.92 + 0.08 * x, stage="Making a playable preview…"))
+                tmp.replace(d / "preview.mp4")
+                p = load(pid)
+                _set(p, preview_state="ready")
+            except Exception:
+                tmp.unlink(missing_ok=True)
+                p = load(pid)
+                _set(p, preview_state="failed")
+        return {"project_id": pid, "clips": len(load(pid)["clips"])}
     except Exception as e:
         p = load(pid)
         _set(p, status="error", stage="Failed", error=str(e))

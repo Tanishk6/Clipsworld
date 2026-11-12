@@ -1,5 +1,5 @@
 // Clipsworld desktop shell: starts the local AI/video engine and opens the UI window.
-const { app, BrowserWindow, dialog, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, net: enet, session, shell } = require("electron");
 const { spawn, execFile } = require("child_process");
 const net = require("net");
 const path = require("path");
@@ -126,6 +126,25 @@ ipcMain.handle("open-path", (_e, p) => shell.openPath(p));
 ipcMain.handle("show-item", (_e, p) => { shell.showItemInFolder(p); return true; });
 ipcMain.handle("open-external", (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); return true; });
 ipcMain.handle("backend-log", () => backendLog.join(""));
+
+function buildInfo() {
+  try { return JSON.parse(fs.readFileSync(path.join(__dirname, "..", "build-info.json"), "utf8")); } catch (_) { return { build: 0 }; }
+}
+ipcMain.handle("app-info", () => ({ version: app.getVersion(), build: buildInfo().build || 0 }));
+ipcMain.handle("check-update", async () => {
+  try {
+    const r = await enet.fetch("https://api.github.com/repos/Tanishk6/clipsworld/releases/latest",
+      { headers: { "User-Agent": "Clipsworld", Accept: "application/vnd.github+json" } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const m = /build-(\d+)/.exec(j.tag_name || "");
+    const latest = m ? Number(m[1]) : 0;
+    const mine = buildInfo().build || 0;
+    if (!latest || !mine || latest <= mine) return null;
+    const exe = (j.assets || []).find((a) => /\.exe$/i.test(a.name));
+    return { latest, mine, url: exe ? exe.browser_download_url : j.html_url, page: j.html_url, name: j.name };
+  } catch (_) { return null; }
+});
 ipcMain.handle("restart-backend", async () => {
   stopBackend();
   await startBackend();
