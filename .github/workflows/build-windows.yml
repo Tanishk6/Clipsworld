@@ -80,9 +80,15 @@ jobs:
           path: app/release/*.exe
           retention-days: 30
 
-      - name: Publish release (tags only)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish release (download page)
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('build-{0}', github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('Clipsworld build {0}', github.run_number) }}
+          target_commitish: ${{ github.sha }}
           files: app/release/*.exe
-          generate_release_notes: true
+          make_latest: true
+          body: |
+            Download **Clipsworld-Setup-*.exe** below and run it.
+            Windows may show a SmartScreen warning (the app isn't code-signed): click More info → Run anyway.

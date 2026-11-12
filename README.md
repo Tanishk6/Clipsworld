@@ -10,7 +10,7 @@ AI clipping studio for Windows. Drop in a long video or stream and Clipsworld:
 
 ## Install
 
-1. Open the **Actions** tab (or **Releases**) on GitHub and download `Clipsworld-Setup-x.y.z.exe`.
+1. Open the **Releases** page on GitHub and download `Clipsworld-Setup-x.y.z.exe`.
 2. Run it. Windows SmartScreen may warn because the app isn't code-signed: click **More info → Run anyway**.
 3. First launch: go to **Settings**
    - Paste your **Claude API key** (Claude Console). Max/Ultra plans include monthly API credits.
@@ -40,7 +40,7 @@ cd app && npm install && npm run dev   # open http://localhost:5173/?port=8765
 cd app && npm start
 ```
 
-Every push to `main` builds the Windows installer in GitHub Actions. Pushing a tag like `v0.1.0`
-also publishes it as a GitHub Release.
+Every push to `main` builds the Windows installer in GitHub Actions and publishes it on the
+**Releases** page.
 
 Fonts in `resources/fonts` are free (SIL OFL / Apache 2.0); see `FONT-LICENSES.txt`.
