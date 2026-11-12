@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Captions, Download, FolderOpen, Languages, LayoutTemplate, Loader2, Play, RefreshCw, Sparkles, Type } from "lucide-react";
-import { api, desktop, fmtTime, url, waitForJob } from "../api.js";
+import { Captions, Download, Languages, LayoutTemplate, Loader2, Mic, RefreshCw, Sparkles, Type, Wand2 } from "lucide-react";
+import { api, fmtTime, waitForJob } from "../api.js";
 import { useApp, useToast } from "../App.jsx";
+import EffectsPanel from "./EffectsPanel.jsx";
+import AudioPanel from "./AudioPanel.jsx";
+import ExportPanel from "./ExportPanel.jsx";
+import CamPicker from "./CamPicker.jsx";
 
 const LANGS = [
   { id: "original", label: "Original (as spoken)" },
@@ -54,17 +58,16 @@ function StyleCard({ id, def, active, onClick }) {
   );
 }
 
-export default function Inspector({ project, clip, patch, replaceClip, time }) {
+export default function Inspector({ project, setProject, clip, patch, replaceClip, time, seek, videoRef, onPreview, previewBusy }) {
   const toast = useToast();
   const { styles, settings } = useApp();
   const [tab, setTab] = useState("captions");
   const [busy, setBusy] = useState(null); // {kind, progress, stage}
   const cap = clip.captions || {};
   const lay = clip.layout || {};
-  const [title, setTitle] = useState(clip.title);
   const [hook, setHook] = useState(clip.hook || "");
 
-  useEffect(() => { setTitle(clip.title); setHook(clip.hook || ""); }, [clip.id, clip.title, clip.hook]);
+  useEffect(() => { setHook(clip.hook || ""); }, [clip.id, clip.hook]);
 
   const translate = async (target) => {
     if (target !== "original" && !settings.has_api_key) return toast("Add your Claude API key in Settings to translate captions.", "error");
@@ -74,25 +77,6 @@ export default function Inspector({ project, clip, patch, replaceClip, time }) {
       const done = await waitForJob(j.id, (x) => setBusy({ kind: "translate", progress: x.progress, stage: x.stage }));
       replaceClip(done.result);
       toast("Captions translated", "ok");
-    } catch (e) {
-      toast(e.message, "error");
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const exportClip = async () => {
-    if (title !== clip.title) await patch({ title });
-    setBusy({ kind: "export", progress: 0, stage: "Starting render…" });
-    try {
-      const j = await api.exportClips(project.id, [clip.id]);
-      const done = await waitForJob(j.id, (x) => setBusy({ kind: "export", progress: x.progress, stage: x.stage }));
-      const fresh = await api.project(project.id);
-      const c = fresh.clips.find((x) => x.id === clip.id);
-      if (c) replaceClip(c);
-      toast("Clip exported! 🎉", "ok");
-      const f = done.result?.files?.[0];
-      if (f && desktop) desktop.showItem(f.path);
     } catch (e) {
       toast(e.message, "error");
     } finally {
@@ -118,9 +102,12 @@ export default function Inspector({ project, clip, patch, replaceClip, time }) {
   return (
     <div className="inspector">
       <div className="seg-tabs">
-        <button className={tab === "captions" ? "on" : ""} onClick={() => setTab("captions")}><Captions size={15} /> Captions</button>
-        <button className={tab === "layout" ? "on" : ""} onClick={() => setTab("layout")}><LayoutTemplate size={15} /> Layout</button>
-        <button className={tab === "export" ? "on" : ""} onClick={() => setTab("export")}><Download size={15} /> Export</button>
+        {[["captions", Captions, "Captions"], ["effects", Wand2, "Effects"], ["audio", Mic, "Voice"], ["layout", LayoutTemplate, "Layout"], ["export", Download, "Export"]].map(([id, Icon, label]) => (
+          <button key={id} className={"vt " + (tab === id ? "on" : "")} onClick={() => setTab(id)}><Icon size={16} /><span>{label}</span>
+            {id === "effects" && clip.effects?.length > 0 && <i className="dotn">{clip.effects.length}</i>}
+            {id === "audio" && clip.audio?.vo_file && <i className="dotn">●</i>}
+          </button>
+        ))}
       </div>
 
       <div className="insp-scroll">
@@ -141,6 +128,9 @@ export default function Inspector({ project, clip, patch, replaceClip, time }) {
               <label>Position</label>
               <Seg value={cap.position || "bottom"} onChange={(v) => patch({ captions: { position: v } })}
                 options={[{ id: "top", label: "Top" }, { id: "middle", label: "Middle" }, { id: "bottom", label: "Bottom" }]} />
+            </div>
+            <div className="field row">
+              <Toggle on={cap.replay_captions !== false} onChange={(v) => patch({ captions: { replay_captions: v } })} label="Show captions again in replays" />
             </div>
             <div className="field row">
               <Toggle on={cap.uppercase == null ? !!styleDefs[cap.style]?.upper : cap.uppercase} onChange={(v) => patch({ captions: { uppercase: v } })} label="ALL CAPS" />
@@ -192,10 +182,24 @@ export default function Inspector({ project, clip, patch, replaceClip, time }) {
             <div className="field">
               <label>Fill mode</label>
               <Seg value={lay.mode || "blur"} onChange={(v) => patch({ layout: { mode: v } })}
-                options={[{ id: "blur", label: "Blur fill" }, { id: "crop", label: "Crop" }, { id: "fit", label: "Fit" }]} />
-              <p className="hint">{lay.mode === "crop" ? "Zooms into one part of the video. Move it with the slider." : lay.mode === "fit" ? "Whole video with black bars." : "Whole video in the middle, blurred copy behind it."}</p>
+                options={[{ id: "blur", label: "Blur" }, { id: "crop", label: "Crop" }, { id: "split", label: "Facecam" }, { id: "fit", label: "Fit" }]} />
+              <p className="hint">{lay.mode === "crop" ? "Zooms into one part of the video. Move it with the slider." : lay.mode === "fit" ? "Whole video with black bars." : lay.mode === "split" ? "Streamer's webcam on top, gameplay below — the classic stream-clip layout." : "Whole video in the middle, blurred copy behind it."}</p>
             </div>
-            {lay.mode === "crop" && (
+            {lay.mode === "split" && (
+              <>
+                <div className="field">
+                  <label>Box the streamer's webcam</label>
+                  <CamPicker projectId={project.id} t={clip.start + Math.min(2, (clip.end - clip.start) / 2)} cam={lay.cam || { x: 0.7, y: 0, w: 0.3, h: 0.3 }}
+                    onChange={(cam) => patch({ layout: { cam } })} />
+                  <p className="hint">Drag the box over the webcam. Drag the corner to resize.</p>
+                </div>
+                <div className="field">
+                  <label>Webcam height <span className="muted">{Math.round((lay.split ?? 0.42) * 100)}%</span></label>
+                  <input type="range" min="0.25" max="0.6" step="0.01" value={lay.split ?? 0.42} onChange={(e) => patch({ layout: { split: Number(e.target.value) } }, true)} />
+                </div>
+              </>
+            )}
+            {(lay.mode === "crop" || lay.mode === "split") && (
               <div className="field">
                 <label>Crop position <span className="muted">{Math.round((lay.crop_x ?? 0.5) * 100)}%</span></label>
                 <input type="range" min="0" max="1" step="0.01" value={lay.crop_x ?? 0.5}
@@ -211,55 +215,15 @@ export default function Inspector({ project, clip, patch, replaceClip, time }) {
           </>
         )}
 
+        {tab === "effects" && (
+          <EffectsPanel project={project} clip={clip} patch={patch} replaceClip={replaceClip} time={time} seek={seek}
+            onPreview={onPreview} previewBusy={previewBusy} />
+        )}
+        {tab === "audio" && (
+          <AudioPanel project={project} clip={clip} patch={patch} replaceClip={replaceClip} videoRef={videoRef} time={time} />
+        )}
         {tab === "export" && (
-          <>
-            <div className="field">
-              <label>Title (used as file name)</label>
-              <input className="input" value={title} maxLength={90} onChange={(e) => setTitle(e.target.value)} onBlur={() => title !== clip.title && patch({ title })} />
-            </div>
-            <div className="field two">
-              <div>
-                <label>Start</label>
-                <input className="input mono" type="number" step="0.1" value={clip.start} onChange={(e) => patch({ start: Number(e.target.value) }, true)} />
-              </div>
-              <div>
-                <label>End</label>
-                <input className="input mono" type="number" step="0.1" value={clip.end} onChange={(e) => patch({ end: Number(e.target.value) }, true)} />
-              </div>
-            </div>
-            <div className="export-box">
-              <div className="row between"><span className="muted">Length</span><b>{(clip.end - clip.start).toFixed(1)} s</b></div>
-              <div className="row between"><span className="muted">Format</span><b>{{ short: "1080×1920 Short", square: "1080×1080", landscape: "1920×1080" }[lay.format || "short"]}</b></div>
-              <div className="row between"><span className="muted">Captions</span><b>{cap.enabled === false ? "Off" : styleDefs[cap.style]?.label}</b></div>
-              {(clip.end - clip.start) > 180 && (lay.format || "short") === "short" && <p className="warn-line">Shorts can be up to 3 minutes. This clip is longer.</p>}
-              <button className="btn primary lg full" onClick={exportClip} disabled={!!busy}>
-                {busy?.kind === "export" ? <Loader2 size={18} className="spin" /> : <Download size={18} />}
-                {busy?.kind === "export" ? `${Math.round(busy.progress * 100)}%` : "Export clip"}
-              </button>
-              {busy?.kind === "export" && (
-                <>
-                  <div className="pbar"><span style={{ width: `${busy.progress * 100}%` }} /></div>
-                  <p className="hint">{busy.stage}</p>
-                </>
-              )}
-            </div>
-            {clip.exports?.length > 0 && (
-              <div className="field">
-                <label>Exported files</label>
-                {clip.exports.slice().reverse().map((e, i) => (
-                  <div key={i} className="exp-row">
-                    {e.thumb && <img src={url.file(e.thumb)} alt="" />}
-                    <div className="exp-info">
-                      <div className="exp-name" title={e.path}>{e.path.split(/[\\/]/).pop()}</div>
-                      <div className="muted tiny">{new Date(e.at * 1000).toLocaleString()}</div>
-                    </div>
-                    {desktop && <button className="icon-btn" title="Play" onClick={() => desktop.openPath(e.path)}><Play size={15} /></button>}
-                    {desktop && <button className="icon-btn" title="Show in folder" onClick={() => desktop.showItem(e.path)}><FolderOpen size={15} /></button>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
+          <ExportPanel project={project} clip={clip} patch={patch} replaceClip={replaceClip} setProject={setProject} />
         )}
       </div>
     </div>

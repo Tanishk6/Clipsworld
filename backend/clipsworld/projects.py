@@ -6,7 +6,7 @@ import time
 import uuid
 from pathlib import Path
 
-from . import ai, captions, highlights, media, render, transcribe, ytdl
+from . import ai, captions, effects as fx, highlights, media, originality, render, transcribe, ytdl
 from . import settings as settings_mod
 from .paths import projects_dir
 
@@ -67,6 +67,8 @@ def public(p: dict) -> dict:
         q["transcript"]["segments"] = [{"start": s["start"], "end": s["end"], "text": s["text"]}
                                        for s in tr["segments"]]
     q.pop("loudness", None)
+    for c in q.get("clips", []):
+        _defaults(c)
     return q
 
 
@@ -190,12 +192,57 @@ def new_clip(p: dict, c: dict) -> dict:
                      "show_hook": bool(c.get("hook")), "language": "original", "cues": []},
         "exports": [],
     }
+    _defaults(clip)
     rebuild_cues(p, clip)
     text = " ".join(q["text"] for q in clip["captions"]["cues"])
     if text and len(captions.DEVANAGARI.findall(text)) > len(text) * 0.3:
         clip["captions"]["style"] = "pop"  # Hindi script: start with a Hindi-friendly font
         rebuild_cues(p, clip)
     return clip
+
+
+def _defaults(c: dict) -> dict:
+    c.setdefault("effects", [])
+    c.setdefault("meta", {})
+    a = c.setdefault("audio", {})
+    a.setdefault("orig_volume", 1.0)
+    a.setdefault("vo_volume", 1.0)
+    a.setdefault("duck", True)
+    a.setdefault("vo_file", None)
+    a.setdefault("vo_has_video", False)
+    b = a.setdefault("bubble", {})
+    b.setdefault("show", True)
+    b.setdefault("pos", "top-right")
+    b.setdefault("size", 0.34)
+    c.setdefault("layout", {}).setdefault("cam", {"x": 0.70, "y": 0.0, "w": 0.30, "h": 0.30})
+    c["layout"].setdefault("split", 0.42)
+    c["captions"].setdefault("replay_captions", True)
+    return c
+
+
+def _clean_effect(e: dict, L: float) -> dict | None:
+    kind = e.get("type")
+    if kind not in fx.TYPES:
+        return None
+    try:
+        t = float(e.get("t", 0))
+    except (TypeError, ValueError):
+        return None
+    if not (0 <= t <= L):
+        return None
+    params = {k: v for k, v in e.items() if k not in ("type", "t", "id")}
+    for k in ("dur", "scale", "speed", "strength", "volume", "zoom", "fx", "fy"):
+        if k in params:
+            try:
+                params[k] = float(params[k])
+            except (TypeError, ValueError):
+                params.pop(k)
+    if "sfx" in params and params["sfx"] and not fx.sfx_path(str(params["sfx"])):
+        params["sfx"] = None
+    out = fx.new_effect(kind, t, **params)
+    if e.get("id"):
+        out["id"] = str(e["id"])[:12]
+    return out
 
 
 def rebuild_cues(p: dict, clip: dict):
@@ -230,11 +277,28 @@ def update_clip(pid, cid, patch: dict) -> dict:
                 c[k] = v
         if c["end"] - c["start"] < 1:
             c["end"] = min(dur, c["start"] + 1)
+        _defaults(c)
         for k in ("title", "hook", "pinned"):
             if k in patch:
                 c[k] = patch[k]
         if "layout" in patch:
-            c["layout"].update(patch["layout"])
+            lay = dict(patch["layout"])
+            if "cam" in lay:
+                c["layout"]["cam"] = {**c["layout"].get("cam", {}), **lay.pop("cam")}
+            c["layout"].update(lay)
+        if "effects" in patch:
+            L = c["end"] - c["start"]
+            c["effects"] = sorted([x for x in (_clean_effect(e, L) for e in patch["effects"] or []) if x],
+                                  key=lambda e: e["t"])
+        if "audio" in patch:
+            au = dict(patch["audio"])
+            au.pop("vo_file", None)
+            au.pop("vo_has_video", None)
+            if "bubble" in au:
+                c["audio"]["bubble"].update(au.pop("bubble"))
+            c["audio"].update(au)
+        if "meta" in patch:
+            c["meta"].update(patch["meta"])
         if "captions" in patch:
             cap = dict(patch["captions"])
             if "cues" in cap:
@@ -300,7 +364,14 @@ def export(job, pid, cids: list):
     results = []
     for i, cid in enumerate(cids):
         p = load(pid)
-        c = get_clip(p, cid)
+        c = _defaults(get_clip(p, cid))
+        if not (c.get("meta") or {}).get("title"):
+            try:
+                gen_metadata(job, pid, cid, c["captions"].get("language", "original"))
+                p = load(pid)
+                c = _defaults(get_clip(p, cid))
+            except Exception:
+                pass
         res = render.export_clip(job, p, c, s, (i / len(cids), (i + 1) / len(cids)))
         with _lock(pid):
             p = load(pid)
@@ -308,6 +379,141 @@ def export(job, pid, cids: list):
             save(p)
         results.append(res)
     return {"files": results}
+
+
+def update_project(pid, patch: dict) -> dict:
+    with _lock(pid):
+        p = load(pid)
+        for k in ("name", "credit"):
+            if k in patch:
+                p[k] = str(patch[k])[:120]
+        save(p)
+        return p
+
+
+def preview(job, pid, cid):
+    s = settings_mod.load()
+    p = load(pid)
+    c = _defaults(get_clip(p, cid))
+    out = pdir(pid) / f"preview_{cid}.mp4"
+    res = render.export_clip(job, p, c, s, preview=True, preview_path=out)
+    res["version"] = int(time.time())
+    return res
+
+
+def save_voiceover(pid, cid, data: bytes, ext: str, has_video: bool) -> dict:
+    with _lock(pid):
+        p = load(pid)
+        c = _defaults(get_clip(p, cid))
+        old = c["audio"].get("vo_file")
+        ext = ext if ext in ("webm", "mp4", "m4a", "mp3", "wav", "ogg", "mkv", "mov") else "webm"
+        f = pdir(pid) / f"vo_{cid}_{int(time.time())}.{ext}"
+        f.write_bytes(data)
+        if old and Path(old).exists() and Path(old).parent == pdir(pid):
+            Path(old).unlink(missing_ok=True)
+        c["audio"]["vo_file"] = str(f)
+        c["audio"]["vo_has_video"] = bool(has_video)
+        save(p)
+        return c
+
+
+def import_voiceover(pid, cid, path: str) -> dict:
+    src = Path(path)
+    if not src.exists():
+        raise RuntimeError("File not found")
+    has_video = False
+    try:
+        has_video = media.probe(str(src)).get("has_video", False) if src.suffix.lower() not in (".mp3", ".wav", ".m4a", ".ogg") else False
+    except Exception:
+        pass
+    return save_voiceover(pid, cid, src.read_bytes(), src.suffix.lstrip(".").lower(), has_video)
+
+
+def delete_voiceover(pid, cid) -> dict:
+    with _lock(pid):
+        p = load(pid)
+        c = _defaults(get_clip(p, cid))
+        old = c["audio"].get("vo_file")
+        if old and Path(old).parent == pdir(pid):
+            Path(old).unlink(missing_ok=True)
+        c["audio"]["vo_file"] = None
+        c["audio"]["vo_has_video"] = False
+        save(p)
+        return c
+
+
+def auto_edit(job, pid, cid):
+    s = settings_mod.load()
+    p = load(pid)
+    c = _defaults(get_clip(p, cid))
+    L = c["end"] - c["start"]
+    segs = (p.get("transcript") or {}).get("segments", [])
+    loud = p.get("loudness") or []
+    local = fx.auto_edit_local(c, loud, 0.25, segs, float(s.get("max_clip_sec", 60)))
+    effects, note = local, "offline"
+    if s.get("claude_api_key"):
+        job.update(progress=0.2, stage="Claude is planning the edit…")
+        peaks = sorted({round(e["t"], 1) for e in local if e["type"] in ("zoom", "shake")})
+        try:
+            raw = ai.auto_edit(segs, c, peaks, s, [x["id"] for x in fx.sfx_list() if x["source"] == "builtin"])
+            got = [x for x in (_clean_effect(e, L) for e in raw) if x]
+            if got:
+                effects, note = got, "claude"
+        except ai.AIError as e:
+            note = f"offline ({e})"
+    with _lock(pid):
+        p = load(pid)
+        c = _defaults(get_clip(p, cid))
+        c["effects"] = sorted(effects, key=lambda e: e["t"])
+        save(p)
+    return {"clip": c, "source": note}
+
+
+CAT_TAGS = {"funny": ["#funny", "#comedy"], "shock": ["#omg", "#unexpected"], "hype": ["#epic", "#clutch"],
+            "panic": ["#scary", "#horror"], "rage": ["#rage"], "skill": ["#skills", "#pro"],
+            "wholesome": ["#wholesome"], "story": ["#story"], "laugh": ["#funny"], "banter": ["#funny"]}
+
+
+def gen_metadata(job, pid, cid, language="original"):
+    s = settings_mod.load()
+    p = load(pid)
+    c = _defaults(get_clip(p, cid))
+    text = " ".join(q["text"] for q in c["captions"].get("cues", []))
+    credit = p.get("credit", "")
+    if s.get("claude_api_key"):
+        job.update(progress=0.3, stage="Writing title and hashtags…")
+        lang = language if language != "original" else ("hinglish" if captions.DEVANAGARI.search(text) else "en")
+        meta = ai.metadata(c, text, lang, credit, s)
+    else:
+        tags = ["#shorts", "#gaming"] + CAT_TAGS.get(c.get("category", ""), [])
+        if captions.DEVANAGARI.search(text):
+            tags.append("#hindi")
+        desc = (c.get("hook") or c["title"])
+        if credit:
+            desc += f"\n\nCredit: {credit}"
+        meta = {"title": c["title"][:70], "description": desc, "hashtags": tags}
+    with _lock(pid):
+        p = load(pid)
+        c = _defaults(get_clip(p, cid))
+        c["meta"] = meta
+        save(p)
+    return {"clip": c}
+
+
+def originality_check(pid, cid) -> dict:
+    p = load(pid)
+    c = _defaults(get_clip(p, cid))
+    recent = []
+    for proj in list_all()[:10]:
+        try:
+            q = load(proj["id"])
+        except Exception:
+            continue
+        for x in q.get("clips", []):
+            if x.get("exports") and x["id"] != cid:
+                recent.append((x.get("captions", {}).get("style"),
+                               tuple(sorted({e["type"] for e in x.get("effects", [])}))))
+    return originality.check(p, c, recent[-8:])
 
 
 def all_exports() -> list:

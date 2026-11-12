@@ -139,7 +139,8 @@ def _esc(text: str) -> str:
 
 def build_ass(cues: list, clip_start: float, clip_end: float, style_id: str = "hormozi",
               position: str = "bottom", uppercase: bool | None = None, hook: str = "",
-              hook_seconds: float = 3.0, width: int = PLAY_W, height: int = PLAY_H) -> str:
+              hook_seconds: float = 3.0, width: int = PLAY_W, height: int = PLAY_H,
+              extra: list | None = None) -> str:
     st = STYLES.get(style_id, STYLES["hormozi"])
     align, margin_v = POSITIONS.get(position, POSITIONS["bottom"])
     scale = height / PLAY_H
@@ -165,8 +166,29 @@ def build_ass(cues: list, clip_start: float, clip_end: float, style_id: str = "h
         f"Style: Hook,Mukta ExtraBold,{int(64 * scale)},{_c('#111111')},{_c('#111111')},{_c('#FFE600')},"
         f"{_c('#FFE600')},0,0,0,0,100,100,0,0,3,{18 * scale:.1f},0,8,{int(90 * scale)},{int(90 * scale)},"
         f"{int(250 * scale)},1",
+        f"Style: Pop,Luckiest Guy,{int(118 * scale)},{_c('#FFE600')},{_c('#FFE600')},{_c('#000000')},"
+        f"{_c('#000000', 0x60)},0,0,0,0,100,100,2,0,1,{10 * scale:.1f},{5 * scale:.1f},5,{int(60 * scale)},"
+        f"{int(60 * scale)},0,1",
+        f"Style: Badge,Montserrat Black,{int(48 * scale)},{_c('#FFFFFF')},{_c('#FFFFFF')},{_c('#FF2D55')},"
+        f"{_c('#FF2D55')},0,0,0,0,100,100,3,0,3,{14 * scale:.1f},0,7,{int(60 * scale)},{int(60 * scale)},"
+        f"{int(170 * scale)},1",
         "", "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]
+    for ev in extra or []:
+        a, b = ev["start"], ev["end"]
+        if b <= a:
+            continue
+        txt = _esc(ev["text"])
+        if ev.get("kind") == "badge":
+            lines.append(f"Dialogue: 3,{_ts(a)},{_ts(b)},Badge,,0,0,0,,{{\\fad(100,100)}}\u25B6 {txt}")
+            continue
+        pos = {"top": (width / 2, height * 0.24), "middle": (width / 2, height * 0.44),
+               "bottom": (width / 2, height * 0.70)}.get(ev.get("position", "middle"), (width / 2, height * 0.44))
+        style = "CapHi" if DEVANAGARI.search(txt) else "Pop"
+        col = _c(ev.get("color", "#FFE600"))
+        lines.append(f"Dialogue: 3,{_ts(a)},{_ts(b)},{style},,0,0,0,,{{\\an5\\pos({pos[0]:.0f},{pos[1]:.0f})"
+                     f"\\c{col}\\frz-4\\fscx40\\fscy40\\t(0,120,\\fscx118\\fscy118)"
+                     f"\\t(120,220,\\fscx100\\fscy100)\\fad(0,150)}}{txt}")
     blur = f"\\blur{st['blur']}" if st.get("blur") else ""
     if hook.strip():
         h = _esc(hook.strip())

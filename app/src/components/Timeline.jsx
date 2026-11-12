@@ -111,6 +111,9 @@ export default function Timeline({ wave, duration, clip, clips, time, onSeek, on
         {(clip.captions?.cues || []).map((q, i) => (
           <span key={i} className="tl-cue" style={{ left: x(q.start), width: Math.max(1, x(q.end) - x(q.start)) }} />
         ))}
+        {(clip.effects || []).map((e) => (
+          <span key={e.id} className={"tl-fx " + e.type} title={e.type} style={{ left: x(clip.start + e.t) }} />
+        ))}
         <div className="tl-head" style={{ left: x(time) }} />
         <div className="tl-ticks">
           {ticks.map((t) => <span key={t} style={{ left: x(t) }}>{fmtTime(t)}</span>)}

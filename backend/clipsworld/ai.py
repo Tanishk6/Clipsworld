@@ -178,3 +178,49 @@ def translate_lines(job, lines: list, target: str, settings: dict) -> list:
             got = (got + part)[:len(part)]
         out.extend(got)
     return out
+
+
+SYSTEM_EDIT = """You are a top YouTube Shorts editor. You add effects to a short clip to make it punchy \
+and clearly edited (not a plain re-upload). Available effects (t = seconds from the clip start):
+- zoom: quick punch-in on a reaction or punchline. fields: t, dur (0.4-1.5), scale (1.15-1.5), ease ("snap" or "smooth"), sfx
+- shake: camera shake on a big hit/scream. fields: t, dur (0.3-0.8), sfx
+- freeze: freeze frame with big text right before/at a "wait what" moment. fields: t, dur (0.8-1.6), text (max 4 words), sfx
+- replay: slow-mo replay of the best moment, inserted after it. fields: t (end of the moment), dur (1.5-3 seconds replayed), speed (0.5-0.8), sfx
+- text: big meme text pop. fields: t, dur (0.8-2), text (max 3 words, Hinglish or English like "BHAI KYA", "NO WAY", "LMAO"), sfx
+- sfx: sound only. fields: t, sfx
+Sound effects you can use: {sfx}
+Rules: 3 to 7 effects total, never more than one effect in the same 0.7 seconds, at most one freeze and
+one replay, keep it tasteful and on the beat of the speech. No emojis in text.
+Reply with JSON only: {{"effects":[{{"type":"zoom","t":3.2,"dur":0.8,"scale":1.3,"ease":"snap","sfx":"whoosh"}}]}}"""
+
+SYSTEM_META = """You write YouTube Shorts upload details for an Indian gaming/entertainment clipping channel.
+Return JSON only: {"title": "...", "description": "...", "hashtags": ["#shorts", "..."]}
+- title: max 70 characters, curiosity-driven but honest, in the requested language style.
+- description: 2-3 short lines about the moment. If a credit is given, end with "Credit: <credit>".
+- hashtags: 5-8 tags, always include #shorts, relevant to the content and language.
+No clickbait lies, no misleading claims."""
+
+
+def auto_edit(segments, clip, peaks, settings, sfx_names) -> list:
+    key, model = settings.get("claude_api_key", ""), settings.get("claude_model", "claude-haiku-5-5")
+    s0, s1 = clip["start"], clip["end"]
+    lines = [f"[{max(0, s['start'] - s0):.1f}-{min(s1, s['end']) - s0:.1f}] {s['text']}"
+             for s in segments if s["end"] > s0 and s["start"] < s1]
+    hint = ", ".join(f"{t:.1f}s" for t in peaks) or "none"
+    user = (f"Clip length: {s1 - s0:.1f} seconds. Title: {clip.get('title', '')}\n"
+            f"Loudest reaction moments: {hint}\nTranscript (seconds from clip start):\n" + "\n".join(lines))
+    data = _parse_json(_ask(key, model, SYSTEM_EDIT.format(sfx=", ".join(sfx_names)), user, max_tokens=1500))
+    return data.get("effects", [])
+
+
+def metadata(clip, transcript_text, language, credit, settings) -> dict:
+    key, model = settings.get("claude_api_key", ""), settings.get("claude_model", "claude-haiku-5-5")
+    lang = {"hinglish": "Hinglish (Roman Hindi)", "hi": "Hindi (Devanagari)", "en": "English"}.get(language, language)
+    user = (f"Language style: {lang}\nClip title idea: {clip.get('title', '')}\nCategory: {clip.get('category', '')}\n"
+            f"Credit: {credit or 'none'}\nWhat is said in the clip:\n{transcript_text[:3000]}")
+    data = _parse_json(_ask(key, model, SYSTEM_META, user, max_tokens=800))
+    tags = [t if t.startswith("#") else "#" + t for t in (str(x).strip().replace(" ", "") for x in data.get("hashtags", [])) if t]
+    if "#shorts" not in [t.lower() for t in tags]:
+        tags.insert(0, "#shorts")
+    return {"title": str(data.get("title", ""))[:100], "description": str(data.get("description", ""))[:4000],
+            "hashtags": tags[:10]}

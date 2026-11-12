@@ -50,7 +50,7 @@ def excitement(loud: list) -> np.ndarray:
     if voiced.sum() < 8:
         return np.zeros(len(x))
     # average loudness of the *voiced* parts in a 60 s window around each point
-    win = int(60 / HOP)
+    win = max(1, min(int(60 / HOP), len(x)))
     k = np.ones(win)
     xs = np.where(voiced, x, 0.0)
     num = np.convolve(xs, k, mode="same")
@@ -66,7 +66,7 @@ def find_moments(segments: list, loud: list, limit: int = 60) -> list:
     z = excitement(loud)
     moments = []
     # 1) loudness peaks (screams, laughs, shouting)
-    if len(z):
+    if len(z) >= 4:
         smooth = np.convolve(z, np.ones(4) / 4, mode="same")
         i = 0
         while i < len(smooth):
@@ -107,7 +107,13 @@ def find_moments(segments: list, loud: list, limit: int = 60) -> list:
     return merged[:limit]
 
 
-def _snap_start(segments, t):
+def _snap_start(segments, t, near=1.5):
+    """Start of the sentence nearest to t (within `near` s), else the sentence that contains t."""
+    if not segments:
+        return max(0.0, t)
+    close = min(segments, key=lambda s: abs(s["start"] - t))
+    if abs(close["start"] - t) <= near:
+        return close["start"]
     best = 0.0
     for s in segments:
         if s["start"] <= t:
@@ -117,7 +123,12 @@ def _snap_start(segments, t):
     return best
 
 
-def _snap_end(segments, t, duration):
+def _snap_end(segments, t, duration, near=1.5):
+    if not segments:
+        return min(duration, t)
+    close = min(segments, key=lambda s: abs(s["end"] - t))
+    if abs(close["end"] - t) <= near:
+        return close["end"]
     for s in segments:
         if s["end"] >= t:
             return s["end"]

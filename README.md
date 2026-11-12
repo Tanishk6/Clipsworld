@@ -6,6 +6,12 @@ AI clipping studio for Windows. Drop in a long video or stream and Clipsworld:
 - **Finds** the funniest / most hype moments (Claude AI, or a free offline finder)
 - **Captions** them word-by-word in 12 trending styles (Hormozi, Beast, Bebas, Comic, Pixel Gamer…)
 - **Translates** captions to Hindi, Hinglish or English (Claude)
+- **Edits** like a Shorts editor: zoom punch-ins, camera shake, freeze frames with text, slow-mo replays,
+  meme text pops and 16 built-in sound effects — or one-click **Auto edit**
+- **Your reaction**: record a voiceover or facecam bubble right in the app (auto-ducks the clip audio)
+- **Facecam layout** for stream clips (streamer's webcam on top, gameplay below)
+- **Originality check** based on YouTube's reused/inauthentic content rules, with tips
+- **Upload details**: title, description (with credit) and hashtags saved as a .txt next to each video
 - **Exports** ready-to-upload 9:16 Shorts, 1:1 or 16:9 videos
 
 ## Install
@@ -44,3 +50,4 @@ Every push to `main` builds the Windows installer in GitHub Actions and publishe
 **Releases** page.
 
 Fonts in `resources/fonts` are free (SIL OFL / Apache 2.0); see `FONT-LICENSES.txt`.
+Sound effects in `resources/sfx` are original, synthesized by `tools/make_sfx.py` (free to use).

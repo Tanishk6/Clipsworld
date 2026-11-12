@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
@@ -14,7 +14,7 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "0.1.0"
+VERSION = "1.0.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -189,6 +189,95 @@ def export(pid: str, body: dict = Body(...)):
     return jobs.start("export", pid, projects.export, pid, ids).to_dict()
 
 
+@app.put("/projects/{pid}")
+def update_project(pid: str, body: dict = Body(...)):
+    _project(pid)
+    return projects.public(projects.update_project(pid, body))
+
+
+@app.get("/projects/{pid}/frame")
+def frame(pid: str, t: float = 0.0):
+    p = _project(pid)
+    f = projects.pdir(pid) / "frame.jpg"
+    from clipsworld import media
+    media.thumbnail(p["source_path"], t, f, width=960)
+    if not f.exists():
+        raise HTTPException(404)
+    return FileResponse(f, headers={"Cache-Control": "no-cache"})
+
+
+@app.post("/projects/{pid}/clips/{cid}/preview")
+def clip_preview(pid: str, cid: str):
+    _project(pid)
+    return jobs.start("preview", pid, projects.preview, pid, cid).to_dict()
+
+
+@app.post("/projects/{pid}/clips/{cid}/auto-edit")
+def clip_auto_edit(pid: str, cid: str):
+    _project(pid)
+    return jobs.start("auto_edit", pid, projects.auto_edit, pid, cid).to_dict()
+
+
+@app.post("/projects/{pid}/clips/{cid}/metadata")
+def clip_metadata(pid: str, cid: str, body: dict = Body(default={})):
+    _project(pid)
+    return jobs.start("metadata", pid, projects.gen_metadata, pid, cid, body.get("language", "original")).to_dict()
+
+
+@app.get("/projects/{pid}/clips/{cid}/originality")
+def clip_originality(pid: str, cid: str):
+    _project(pid)
+    try:
+        return projects.originality_check(pid, cid)
+    except KeyError:
+        raise HTTPException(404, "Clip not found")
+
+
+@app.post("/projects/{pid}/clips/{cid}/voiceover")
+async def upload_voiceover(pid: str, cid: str, request: Request, ext: str = "webm", video: int = 0):
+    _project(pid)
+    data = await request.body()
+    if len(data) < 1000:
+        raise HTTPException(400, "Recording is empty.")
+    return projects.save_voiceover(pid, cid, data, ext, bool(video))
+
+
+@app.post("/projects/{pid}/clips/{cid}/voiceover/import")
+def import_voiceover(pid: str, cid: str, body: dict = Body(...)):
+    _project(pid)
+    try:
+        return projects.import_voiceover(pid, cid, body.get("path", ""))
+    except RuntimeError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.delete("/projects/{pid}/clips/{cid}/voiceover")
+def delete_voiceover(pid: str, cid: str):
+    _project(pid)
+    return projects.delete_voiceover(pid, cid)
+
+
+@app.get("/sfx")
+def sfx_list():
+    from clipsworld import effects as fx
+    return fx.sfx_list()
+
+
+@app.get("/sfx/{sfx_id}")
+def sfx_file(sfx_id: str):
+    from clipsworld import effects as fx
+    p = fx.sfx_path(sfx_id)
+    if not p:
+        raise HTTPException(404)
+    return FileResponse(p, headers={"Cache-Control": "max-age=86400"})
+
+
+@app.get("/effects/defaults")
+def effect_defaults():
+    from clipsworld import effects as fx, originality
+    return {"defaults": fx.DEFAULTS, "types": fx.TYPES, "rules": originality.RULES}
+
+
 @app.get("/exports")
 def exports():
     return projects.all_exports()
@@ -207,7 +296,7 @@ def font(name: str):
 def any_file(path: str):
     """Serve an exported clip or thumbnail for preview in the app."""
     f = Path(path)
-    if not f.exists() or f.suffix.lower() not in {".mp4", ".jpg"}:
+    if not f.exists() or f.suffix.lower() not in {".mp4", ".jpg", ".webm", ".m4a", ".mp3", ".wav", ".mkv", ".mov", ".ogg"}:
         raise HTTPException(404)
     return FileResponse(f)
 

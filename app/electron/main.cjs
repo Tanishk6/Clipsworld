@@ -1,5 +1,5 @@
 // Clipsworld desktop shell: starts the local AI/video engine and opens the UI window.
-const { app, BrowserWindow, dialog, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, session, shell } = require("electron");
 const { spawn, execFile } = require("child_process");
 const net = require("net");
 const path = require("path");
@@ -137,6 +137,10 @@ app.on("second-instance", () => {
 });
 
 app.whenReady().then(async () => {
+  // camera + microphone for reaction recording, clipboard for copy buttons
+  const allowed = new Set(["media", "clipboard-sanitized-write", "clipboard-read", "fullscreen"]);
+  session.defaultSession.setPermissionRequestHandler((_wc, perm, cb) => cb(allowed.has(perm)));
+  session.defaultSession.setPermissionCheckHandler((_wc, perm) => allowed.has(perm));
   await startBackend();
   createWindow();
 });

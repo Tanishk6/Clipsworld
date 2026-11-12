@@ -41,6 +41,24 @@ def probe(path: str) -> dict:
     }
 
 
+_FF_MAJOR = None
+
+
+def ffmpeg_major() -> int:
+    global _FF_MAJOR
+    if _FF_MAJOR is None:
+        r = _run([tool("ffmpeg"), "-hide_banner", "-version"])
+        import re as _re
+        m = _re.search(r"ffmpeg version (?:n)?(\d+)\.", r.stdout)
+        _FF_MAJOR = int(m.group(1)) if m else 99  # git/master builds are new
+    return _FF_MAJOR
+
+
+def filter_script_args(path: str) -> list:
+    """-filter_complex from a file (new syntax on FFmpeg 7+, old option on 6)."""
+    return ["-/filter_complex", path] if ffmpeg_major() >= 7 else ["-filter_complex_script", path]
+
+
 def run_ffmpeg(args: list, duration: float, on_progress=None, cwd=None):
     """Run ffmpeg, reporting 0..1 progress from its -progress output."""
     cmd = [tool("ffmpeg"), "-hide_banner", "-y", "-nostats", "-progress", "pipe:1"] + args

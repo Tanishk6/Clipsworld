@@ -42,6 +42,22 @@ export const api = {
   translate: (id, cid, target) => req("POST", `/projects/${id}/clips/${cid}/translate`, { target }),
   exportClips: (id, clip_ids) => req("POST", `/projects/${id}/export`, { clip_ids }),
   exports: () => req("GET", "/exports"),
+  updateProject: (id, patch) => req("PUT", `/projects/${id}`, patch),
+  preview: (id, cid) => req("POST", `/projects/${id}/clips/${cid}/preview`),
+  autoEdit: (id, cid) => req("POST", `/projects/${id}/clips/${cid}/auto-edit`),
+  metadata: (id, cid, language) => req("POST", `/projects/${id}/clips/${cid}/metadata`, { language }),
+  originality: (id, cid) => req("GET", `/projects/${id}/clips/${cid}/originality`),
+  importVoiceover: (id, cid, path) => req("POST", `/projects/${id}/clips/${cid}/voiceover/import`, { path }),
+  deleteVoiceover: (id, cid) => req("DELETE", `/projects/${id}/clips/${cid}/voiceover`),
+  uploadVoiceover: async (id, cid, blob, ext, hasVideo) => {
+    const r = await fetch(`${BASE}/projects/${id}/clips/${cid}/voiceover?ext=${ext}&video=${hasVideo ? 1 : 0}`, {
+      method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: blob,
+    });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || "Upload failed");
+    return r.json();
+  },
+  sfx: () => req("GET", "/sfx"),
+  effectDefaults: () => req("GET", "/effects/defaults"),
   jobs: () => req("GET", "/jobs"),
   job: (id) => req("GET", `/jobs/${id}`),
   cancelJob: (id) => req("POST", `/jobs/${id}/cancel`),
@@ -53,6 +69,8 @@ export const url = {
   thumb: (id, cid, v = "") => `${BASE}/projects/${id}/thumb/${cid}?v=${v}`,
   file: (p) => `${BASE}/file?path=${encodeURIComponent(p)}`,
   font: (n) => `${BASE}/fonts/${n}`,
+  sfx: (id) => `${BASE}/sfx/${encodeURIComponent(id)}`,
+  frame: (id, t) => `${BASE}/projects/${id}/frame?t=${t}`,
 };
 
 export function waitForJob(id, onTick, interval = 700) {

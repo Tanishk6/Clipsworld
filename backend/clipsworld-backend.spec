@@ -14,7 +14,7 @@ a = Analysis(
     pathex=["."],
     binaries=binaries,
     datas=datas,
-    hiddenimports=hiddenimports + ["clipsworld", "clipsworld.ai", "clipsworld.captions", "clipsworld.gpu",
+    hiddenimports=hiddenimports + ["clipsworld", "clipsworld.ai", "clipsworld.captions", "clipsworld.effects", "clipsworld.gpu", "clipsworld.originality",
                                    "clipsworld.highlights", "clipsworld.jobs", "clipsworld.media",
                                    "clipsworld.paths", "clipsworld.projects", "clipsworld.render",
                                    "clipsworld.settings", "clipsworld.transcribe", "clipsworld.ytdl"],

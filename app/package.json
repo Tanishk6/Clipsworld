@@ -1,7 +1,7 @@
 {
   "name": "clipsworld",
   "productName": "Clipsworld",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "AI clipping studio: turn long videos and streams into captioned Shorts.",
   "author": "Overworld Studio",
   "main": "electron/main.cjs",
@@ -24,14 +24,38 @@
   "build": {
     "appId": "studio.overworld.clipsworld",
     "productName": "Clipsworld",
-    "directories": { "output": "release", "buildResources": "build" },
-    "files": ["dist/**", "electron/**", "build/icon.png", "package.json"],
-    "extraResources": [
-      { "from": "../dist-backend/clipsworld-backend", "to": "backend" },
-      { "from": "../resources/ffmpeg", "to": "ffmpeg" },
-      { "from": "../resources/fonts", "to": "fonts" }
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "build/icon.png",
+      "package.json"
     ],
-    "win": { "target": "nsis", "icon": "build/icon.ico" },
+    "extraResources": [
+      {
+        "from": "../dist-backend/clipsworld-backend",
+        "to": "backend"
+      },
+      {
+        "from": "../resources/ffmpeg",
+        "to": "ffmpeg"
+      },
+      {
+        "from": "../resources/fonts",
+        "to": "fonts"
+      },
+      {
+        "from": "../resources/sfx",
+        "to": "sfx"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

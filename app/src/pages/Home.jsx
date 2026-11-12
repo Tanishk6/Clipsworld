@@ -84,6 +84,9 @@ export default function Home({ onOpen }) {
             <span><Wand2 size={15} /> AI moment finder</span>
             <span><Captions size={15} /> Word-by-word captions</span>
             <span><Languages size={15} /> Hindi · Hinglish · English</span>
+            <span><Zap size={15} /> Zooms · Replays · SFX</span>
+            <span><Film size={15} /> Facecam & voiceover</span>
+            <span><Captions size={15} /> Originality check</span>
           </div>
         </div>
 

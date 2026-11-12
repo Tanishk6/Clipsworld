@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, AudioLines, Check, Download, Loader2, RefreshCw, Sparkles, X, AlertTriangle, Film, Wand2, Captions as CapIcon } from "lucide-react";
-import { api, fmtTime, waitForJob } from "../api.js";
+import { api, fmtTime, url, waitForJob } from "../api.js";
 import { useApp, useToast } from "../App.jsx";
 import ClipList from "../components/ClipList.jsx";
 import Preview from "../components/Preview.jsx";
@@ -61,6 +61,8 @@ export default function Project({ id, onBack }) {
   const [time, setTime] = useState(0);
   const [wave, setWave] = useState(null);
   const [bulk, setBulk] = useState(null);
+  const [rendered, setRendered] = useState({}); // clipId -> {url, stale}
+  const [previewBusy, setPreviewBusy] = useState(null);
   const videoRef = useRef(null);
   const timers = useRef({});
 
@@ -96,7 +98,19 @@ export default function Project({ id, onBack }) {
 
   const replaceClip = useCallback((c) => {
     setProject((p) => ({ ...p, clips: p.clips.map((x) => (x.id === c.id ? c : x)) }));
+    setRendered((r) => (r[c.id] ? { ...r, [c.id]: { ...r[c.id], stale: true } } : r));
   }, []);
+
+  const makePreview = async () => {
+    if (!sel) return;
+    setPreviewBusy({ progress: 0 });
+    try {
+      const j = await api.preview(id, sel);
+      const d = await waitForJob(j.id, (x) => setPreviewBusy({ progress: x.progress }));
+      setRendered((r) => ({ ...r, [sel]: { url: url.file(d.result.path) + `&v=${d.result.version}`, stale: false, show: true } }));
+    } catch (e) { toast(e.message, "error"); }
+    finally { setPreviewBusy(null); }
+  };
 
   const patch = useCallback((p, debounce = false) => {
     if (!sel) return;
@@ -104,8 +118,10 @@ export default function Project({ id, onBack }) {
       ...proj,
       clips: proj.clips.map((c) => (c.id !== sel ? c : {
         ...c, ...p,
-        layout: { ...c.layout, ...(p.layout || {}) },
+        layout: { ...c.layout, ...(p.layout || {}), cam: { ...(c.layout?.cam || {}), ...(p.layout?.cam || {}) } },
         captions: { ...c.captions, ...(p.captions || {}) },
+        audio: { ...c.audio, ...(p.audio || {}), bubble: { ...(c.audio?.bubble || {}), ...(p.audio?.bubble || {}) } },
+        meta: { ...c.meta, ...(p.meta || {}) },
       })),
     }));
     const send = async () => {
@@ -217,7 +233,9 @@ export default function Project({ id, onBack }) {
         <div className="center-col">
           {clip ? (
             <>
-              <Preview projectId={id} clip={clip} styleDef={styles?.styles?.[clip.captions?.style]} videoRef={videoRef} time={time} setTime={setTime} />
+              <Preview projectId={id} clip={clip} styleDef={styles?.styles?.[clip.captions?.style]} videoRef={videoRef} time={time} setTime={setTime}
+                rendered={rendered[clip.id]} previewBusy={previewBusy} onMakePreview={makePreview}
+                onToggleRendered={(show) => setRendered((r) => ({ ...r, [clip.id]: { ...r[clip.id], show } }))} />
               <Timeline wave={wave} duration={project.info.duration} clip={clip} clips={project.clips} time={time} onSeek={seek}
                 onTrim={(s, e) => patch({ start: s, end: e })} />
             </>
@@ -225,7 +243,8 @@ export default function Project({ id, onBack }) {
             <div className="empty big">Pick a clip on the left, or make a new one.</div>
           )}
         </div>
-        {clip && <Inspector project={project} clip={clip} patch={patch} replaceClip={replaceClip} time={time} />}
+        {clip && <Inspector project={project} setProject={setProject} clip={clip} patch={patch} replaceClip={replaceClip} time={time}
+          seek={seek} videoRef={videoRef} onPreview={makePreview} previewBusy={!!previewBusy} />}
       </div>
     </div>
   );
