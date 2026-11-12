@@ -22,14 +22,26 @@ function injectFonts(fonts) {
 }
 
 function Splash({ error }) {
+  const [secs, setSecs] = useState(0);
+  const [log, setLog] = useState("");
+  useEffect(() => {
+    const t = setInterval(() => setSecs((x) => x + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  useEffect(() => {
+    if (!desktop || secs < 15 || secs % 3) return;
+    desktop.backendLog().then((l) => setLog(l || "")).catch(() => {});
+  }, [secs]);
   return (
     <div className="splash">
       <div className="splash-logo"><Logo size={64} /></div>
       <h1 className="brand-title">Clipsworld</h1>
       {!error ? (
         <>
-          <p className="muted">Starting the AI engine…</p>
+          <p className="muted">Starting the AI engine… {secs > 5 ? `${secs}s` : ""}</p>
           <div className="splash-bar"><span /></div>
+          {secs >= 15 && <p className="muted tiny">The first start can take 1–2 minutes while Windows checks the new files.</p>}
+          {secs >= 15 && log && <pre className="splash-log">{log.slice(-1200)}</pre>}
         </>
       ) : (
         <div className="splash-error">
@@ -93,7 +105,7 @@ export default function App() {
         setReady(true);
       } catch (e) {
         tries += 1;
-        if (tries > 120) {
+        if (tries > 360) {
           const log = desktop ? await desktop.backendLog() : String(e);
           setBootError(log.slice(-1500) || String(e));
           return;

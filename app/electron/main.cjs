@@ -49,7 +49,10 @@ async function startBackend() {
     cwd = path.join(root, "backend");
     env.CLIPSWORLD_RESOURCES = path.join(root, "resources");
   }
+  logLine(`[starting engine] ${cmd}\n`);
+  if (!fs.existsSync(cmd) && app.isPackaged) logLine(`[error] engine file is missing: ${cmd}\n`);
   backend = spawn(cmd, args, { cwd, env, windowsHide: true });
+  backend.on("error", (e) => logLine(`[error] could not start engine: ${e.message}\n`));
   backend.stdout.on("data", (d) => logLine(d.toString()));
   backend.stderr.on("data", (d) => logLine(d.toString()));
   backend.on("exit", (code) => {

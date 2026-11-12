@@ -449,3 +449,4 @@ input[type="range"] { width: 100%; accent-color: #c06bff; }
 .tl-fx.replay { background: #ff4fd8; } .tl-fx.text { background: #fff; } .tl-fx.sfx { background: #4dffb8; }
 .cam-canvas { position: absolute; left: 0; top: 0; width: 100%; border-bottom: 2px solid rgba(0,0,0,.4); }
 .segmented.sm button { white-space: nowrap; }
+.splash-log { max-width: 720px; max-height: 200px; overflow: auto; background: rgba(0,0,0,.5); border: 1px solid var(--line2); padding: 10px 12px; border-radius: 10px; font-size: 11px; color: #b8b2d8; white-space: pre-wrap; text-align: left; user-select: text; }
