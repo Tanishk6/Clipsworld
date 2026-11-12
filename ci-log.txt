@@ -1,0 +1,33 @@
+run=12 sha=d0bab749328410a74fd94edd4fd20a78b4c78375 e2e=success job=success
+**********************
+PowerShell transcript start
+Start time: 20261112212848
+Username: runnervmm7ud1\runneradmin
+RunAs User: runnervmm7ud1\runneradmin
+Configuration Name: 
+Machine: runnervmm7ud1 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\c2121481-4463-4a30-b676-c48886c3f4af.ps1'
+Process ID: 6908
+PSVersion: 7.6.9
+PSEdition: Core
+GitCommitId: 7.6.9
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is e2e.log
+
+
+
+END-TO-END OK
+Traceback (most recent call last):
+  File "clipsworld\jobs.py", line 51, in run
+  File "clipsworld\projects.py", line 414, in translate_clip
+clipsworld.ai.AIError: Add your Claude API key in Settings to translate captions.
+**********************
+PowerShell transcript end
+End time: 20261112212949
+**********************
