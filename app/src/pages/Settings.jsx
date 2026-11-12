@@ -143,6 +143,16 @@ export default function Settings() {
             </select>
           </div>
           <div className="field">
+            <label>Default caption language</label>
+            <select value={s.caption_language || "hinglish"} onChange={(e) => set("caption_language", e.target.value)}>
+              <option value="hinglish">Hinglish (bhai ye kya hua) — recommended</option>
+              <option value="original">As spoken (Hindi in Devanagari)</option>
+              <option value="hi">Hindi (हिंदी)</option>
+              <option value="en">English</option>
+            </select>
+            <p className="hint">New clips get this automatically (uses Claude).</p>
+          </div>
+          <div className="field">
             <label>Accuracy</label>
             <select value={s.whisper_model} onChange={(e) => set("whisper_model", e.target.value)}>
               {WHISPER.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}

@@ -193,8 +193,14 @@ def find_clips(job, p: dict, s: dict, base: float = 0.0):
         warning = "Tip: add your Claude API key in Settings for much smarter clip picks."
     p = load(p["id"])
     keep = [c for c in p.get("clips", []) if c.get("pinned") or c.get("exports")]
-    clips = keep + [new_clip(p, c) for c in found
-                    if all(c["end"] <= k["start"] or c["start"] >= k["end"] for k in keep)]
+    fresh = [c for c in found if all(c["end"] <= k["start"] or c["start"] >= k["end"] for k in keep)]
+    lang = s.get("caption_language", "hinglish")
+    made = []
+    for i, c in enumerate(fresh):
+        if s.get("claude_api_key") and lang != "original":
+            job.update(stage=f"Writing {'Hinglish' if lang == 'hinglish' else lang.upper()} captions… {i + 1}/{len(fresh)}")
+        made.append(new_clip(p, c))
+    clips = keep + made
     for i, c in enumerate(clips):
         job.update(progress=base + span * (0.9 + 0.1 * i / max(1, len(clips))), stage="Making thumbnails…")
         _thumb(p, c)
@@ -213,11 +219,15 @@ def new_clip(p: dict, c: dict) -> dict:
         "exports": [],
     }
     _defaults(clip)
-    rebuild_cues(p, clip)
+    s = settings_mod.load()
+    target = s.get("caption_language", "hinglish") if s.get("claude_api_key") else "original"
+    rebuild_cues(p, clip, translate=False)
     text = " ".join(q["text"] for q in clip["captions"]["cues"])
-    if text and len(captions.DEVANAGARI.findall(text)) > len(text) * 0.3:
+    hindi = bool(text) and len(captions.DEVANAGARI.findall(text)) > len(text) * 0.3
+    if hindi and target in ("original", "hi"):
         clip["captions"]["style"] = "pop"  # Hindi script: start with a Hindi-friendly font
-        rebuild_cues(p, clip)
+    clip["captions"]["language"] = target
+    rebuild_cues(p, clip)
     return clip
 
 
@@ -228,6 +238,7 @@ def _defaults(c: dict) -> dict:
     a.setdefault("orig_volume", 1.0)
     a.setdefault("vo_volume", 1.0)
     a.setdefault("duck", True)
+    a.setdefault("sfx_volume", 1.0)
     a.setdefault("vo_file", None)
     a.setdefault("vo_has_video", False)
     b = a.setdefault("bubble", {})
@@ -265,11 +276,37 @@ def _clean_effect(e: dict, L: float) -> dict | None:
     return out
 
 
-def rebuild_cues(p: dict, clip: dict):
+def rebuild_cues(p: dict, clip: dict, translate: bool = True, job=None):
+    """Make captions again from the speech, then (if chosen) translate them, e.g. to Hinglish."""
     st = captions.STYLES.get(clip["captions"].get("style", "pop"), captions.STYLES["pop"])
     segs = (p.get("transcript") or {}).get("segments", [])
     clip["captions"]["cues"] = captions.build_cues(segs, clip["start"], clip["end"], st["words"])
+    want = clip["captions"].get("language") or "original"
     clip["captions"]["language"] = "original"
+    if translate and want != "original":
+        apply_translation(clip, want, settings_mod.load(), job)
+
+
+def apply_translation(clip: dict, target: str, s: dict, job=None) -> bool:
+    """Translate the clip's caption lines (and a Hindi hook) with Claude. Returns False if not possible."""
+    if target == "original" or not s.get("claude_api_key"):
+        return False
+    cues = clip["captions"]["cues"]
+    hook = clip.get("hook") or ""
+    hook_needs = bool(hook) and (target != "hi" and bool(captions.DEVANAGARI.search(hook)) or target == "hi")
+    lines = [q["text"] for q in cues] + ([hook] if hook_needs else [])
+    if lines:
+        try:
+            out = ai.translate_lines(job, lines, target, s)
+        except ai.AIError:
+            return False
+        for q, t in zip(cues, out):
+            q["text"] = t.strip() or q["text"]
+            captions.respread_words(q)
+        if hook_needs:
+            clip["hook"] = out[-1].strip() or hook
+    clip["captions"]["language"] = target
+    return True
 
 
 def _thumb(p, clip):
@@ -325,7 +362,7 @@ def update_clip(pid, cid, patch: dict) -> dict:
                 cap["cues"] = [captions.respread_words(dict(q)) if q.get("edited") else q for q in cap["cues"]]
             old_style = c["captions"].get("style")
             c["captions"].update(cap)
-            if "style" in cap and cap["style"] != old_style and c["captions"].get("language") == "original" \
+            if "style" in cap and cap["style"] != old_style \
                     and not any(q.get("edited") for q in c["captions"]["cues"]):
                 rebuild_cues(p, c)
         if retime:
@@ -358,25 +395,18 @@ def delete_clip(pid, cid):
 
 def translate_clip(job, pid, cid, target):
     s = settings_mod.load()
-    p = load(pid)
-    c = get_clip(p, cid)
-    if target == "original":
-        update = {"captions": {"language": "original"}}
-        rebuild_cues(p, c)
+    if target != "original" and not s.get("claude_api_key"):
+        raise ai.AIError("Add your Claude API key in Settings to translate captions.")
+    with _lock(pid):
+        p = load(pid)
+        c = _defaults(get_clip(p, cid))
+        c["captions"]["language"] = "original"
+        rebuild_cues(p, c, translate=False)  # always translate from the original words
+        if target != "original":
+            if not apply_translation(c, target, s, job):
+                raise ai.AIError("Claude couldn't translate the captions right now. Try again in a moment.")
         save(p)
-        return update_clip(pid, cid, update)
-    if c["captions"].get("language") != "original":
-        rebuild_cues(p, c)  # always translate from the original words
-    cues = c["captions"]["cues"]
-    lines = ai.translate_lines(job, [q["text"] for q in cues], target, s)
-    for q, t in zip(cues, lines):
-        q["text"] = t.strip() or q["text"]
-        captions.respread_words(q)
-    c["captions"]["language"] = target
-    if c.get("hook"):
-        c["hook"] = ai.translate_lines(None, [c["hook"]], target, s)[0]
-    save(p)
-    return c
+        return c
 
 
 def export(job, pid, cids: list):

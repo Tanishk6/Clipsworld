@@ -9,6 +9,7 @@ DEFAULTS = {
     "claude_model": "claude-haiku-5-5",
     "whisper_model": "large-v3-turbo",   # tiny, base, small, medium, large-v3-turbo
     "device": "auto",                    # auto, cuda, cpu
+    "caption_language": "hinglish",      # original, hinglish, hi, en (needs Claude)
     "language": "mixed",                 # mixed (Hindi+English), auto, hi, en
     "encoder": "auto",                   # auto, nvenc, x264
     "output_dir": "",

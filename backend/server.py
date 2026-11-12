@@ -14,7 +14,7 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 

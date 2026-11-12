@@ -19,7 +19,7 @@ DEFAULTS = {
     "freeze": {"dur": 1.2, "text": "WAIT WHAT?!", "zoom": 1.12, "sfx": "record_scratch"},
     "replay": {"dur": 2.5, "speed": 0.6, "label": "REPLAY", "sfx": "rewind"},
     "text": {"dur": 1.4, "text": "BRUH", "position": "middle", "color": "#FFE600", "sfx": "pop"},
-    "sfx": {"dur": 0.0, "sfx": "boom", "volume": 0.9},
+    "sfx": {"dur": 0.0, "sfx": "boom", "volume": 0.85},
 }
 
 TEXT_IDEAS = {
@@ -29,7 +29,7 @@ TEXT_IDEAS = {
 
 
 def new_effect(kind: str, t: float, **params) -> dict:
-    e = {"id": uuid.uuid4().hex[:6], "type": kind, "t": round(float(t), 2)}
+    e = {"id": uuid.uuid4().hex[:6], "type": kind, "t": round(float(t), 2), "volume": 0.85}
     e.update(DEFAULTS[kind])
     e.update({k: v for k, v in params.items() if v is not None})
     return e
@@ -262,7 +262,7 @@ def text_events(segs, effects, avoid: str = "") -> list:
     return ev
 
 
-def sound_events(segs, effects) -> list:
+def sound_events(segs, effects, master: float = 1.0) -> list:
     out = []
     for e in effects:
         p = sfx_path(e.get("sfx", ""))
@@ -273,7 +273,9 @@ def sound_events(segs, effects) -> list:
             t0 = s["out_a"] if s else map_time(segs, e["t"])
         else:
             t0 = map_time(segs, e["t"])
-        out.append({"path": str(p), "t": max(0.0, t0), "volume": float(e.get("volume", 0.85))})
+        vol = float(e.get("volume", 0.85) if e.get("volume") is not None else 0.85) * max(0.0, float(master))
+        if vol > 0.001:
+            out.append({"path": str(p), "t": max(0.0, t0), "volume": vol})
     return out
 
 

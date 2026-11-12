@@ -22,7 +22,17 @@ export default function CaptionOverlay({ clip, styleDef, time, frameH }) {
     const cue = cues[idx];
     const st = styleDef;
     const upper = cap.uppercase == null ? st.upper : cap.uppercase;
-    const words = cue.words && cue.words.length ? cue.words : cue.text.split(" ").map((w) => ({ word: w, start: cue.start, end: cue.end }));
+    const raw = cue.words && cue.words.length ? cue.words : cue.text.split(" ").map((w) => ({ word: w, start: cue.start, end: cue.end }));
+    // join Hindi pieces that start with a matra/mark (never show broken letters)
+    const words = [];
+    for (const w of raw) {
+      const t = (w.word || "").trim();
+      if (!t) continue;
+      const last = words[words.length - 1];
+      if (last && (/^[\u0900-\u0903\u093A-\u094F\u0951-\u0957\u0962\u0963\u200C\u200D]/.test(t) || /\u094D$/.test(last.word))) {
+        words[words.length - 1] = { ...last, word: last.word + t, end: w.end };
+      } else words.push({ ...w, word: t });
+    }
     let active = 0;
     words.forEach((w, i) => { if (time >= w.start) active = i; });
     const hasDeva = /[ऀ-ॿ]/.test(cue.text);
@@ -39,7 +49,7 @@ export default function CaptionOverlay({ clip, styleDef, time, frameH }) {
       paintOrder: "stroke fill",
       textShadow: st.blur ? `0 0 ${8 * k}px ${st.color}, 0 0 ${22 * k}px ${st.color}` : st.shadow ? `0 ${3 * k}px ${4 * k}px rgba(0,0,0,.6)` : undefined,
       lineHeight: 1.05,
-      letterSpacing: 1,
+      letterSpacing: hasDeva ? 0 : 1,
     };
     nodes.push(
       <div key={"cue" + idx} className={"cap-line" + (st.pop ? " pop" : "")} style={{ ...posStyle, left: 70 * k, right: 70 * k }}>

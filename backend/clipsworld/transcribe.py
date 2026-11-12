@@ -3,7 +3,7 @@ import os
 import wave
 import threading
 
-from . import downloads, gpu
+from . import captions, downloads, gpu
 
 MODEL_SIZES_MB = {"tiny": 75, "base": 145, "small": 480, "medium": 1500, "large-v3-turbo": 1600}
 
@@ -97,11 +97,12 @@ def _run_mixed(job, model, device, wav_path, duration):
                                        condition_on_previous_text=False)
             off = t0 + a / sr
             for seg in segs:
-                words = [{"start": round(off + w.start, 3), "end": round(off + w.end, 3), "word": w.word.strip()}
-                         for w in (seg.words or []) if w.word.strip()]
+                words = captions.fix_words(
+                    [{"start": round(off + w.start, 3), "end": round(off + w.end, 3), "word": w.word.strip()}
+                     for w in (seg.words or []) if w.word.strip()])
                 if seg.text.strip():
                     out.append({"start": round(off + seg.start, 3), "end": round(off + seg.end, 3),
-                                "text": seg.text.strip(), "words": words, "lang": lang})
+                                "text": captions.fix_text(seg.text.strip()), "words": words, "lang": lang})
             pos = off + len(piece) / sr
             job.update(progress=min(1.0, pos / duration),
                        stage=f"Listening (Hindi + English)… {int(pos // 60)}:{int(pos % 60):02d} / "
@@ -128,10 +129,10 @@ def _run(job, name, device, wav_path, duration, lang):
     )
     out = []
     for seg in segments:
-        words = [{"start": round(w.start, 3), "end": round(w.end, 3), "word": w.word.strip()}
-                 for w in (seg.words or []) if w.word.strip()]
+        words = captions.fix_words([{"start": round(w.start, 3), "end": round(w.end, 3), "word": w.word.strip()}
+                                    for w in (seg.words or []) if w.word.strip()])
         out.append({"start": round(seg.start, 3), "end": round(seg.end, 3),
-                    "text": seg.text.strip(), "words": words})
+                    "text": captions.fix_text(seg.text.strip()), "words": words})
         if duration > 0:
             job.update(progress=seg.end / duration,
                        stage=f"Listening… {int(seg.end // 60)}:{int(seg.end % 60):02d} / "

@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Eye, Loader2, Pause, Play, RotateCcw, Volume2, VolumeX, Radio, Film } from "lucide-react";
 import { fmtTime, url } from "../api.js";
 import CaptionOverlay from "./CaptionOverlay.jsx";
+import { buildTimeline, outToSrc } from "../timeline.js";
 
 const RATIO = { short: 9 / 16, landscape: 16 / 9, square: 1 };
 
@@ -121,7 +122,9 @@ export default function Preview({ projectId, previewState, clip, styleDef, video
       <div className="preview-stage" ref={wrapRef}>
         {showRendered && (
           <div className={"frame " + (layout.format || "short")} style={{ width: box.w, height: box.h }}>
-            <video key={rendered.url} src={rendered.url} controls autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            <video key={rendered.url} src={rendered.url} controls autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              onTimeUpdate={(e) => setTime(clip.start + outToSrc(buildTimeline(clip.end - clip.start, clip.effects || []), e.currentTarget.currentTime))}
+              onSeeked={(e) => setTime(clip.start + outToSrc(buildTimeline(clip.end - clip.start, clip.effects || []), e.currentTarget.currentTime))} />
             {rendered.stale && <div className="stale-tag">Changed since this preview — render again</div>}
           </div>
         )}
@@ -133,6 +136,8 @@ export default function Preview({ projectId, previewState, clip, styleDef, video
             ref={videoRef}
             src={url.media(projectId, previewState || "")}
             onError={() => setVidErr(true)}
+            onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+            onSeeked={(e) => setTime(e.currentTarget.currentTime)}
             style={vStyle}
             muted={muted}
             playsInline

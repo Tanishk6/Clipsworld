@@ -76,6 +76,36 @@ for _st in STYLES.values():
 POSITIONS = {"bottom": (2, 420), "middle": (5, 0), "top": (8, 330)}
 
 
+_MARK_RE = re.compile(r"\s+(?=[\u0900-\u0903\u093A-\u094F\u0951-\u0957\u0962\u0963\u200C\u200D])|(?<=\u094D)\s+")
+
+
+def fix_text(text: str) -> str:
+    """Remove spaces that break Hindi letters apart (before a matra/mark, after a halant)."""
+    return _MARK_RE.sub("", text)
+
+
+def _is_mark(ch: str) -> bool:
+    import unicodedata
+    return unicodedata.category(ch) in ("Mn", "Mc", "Me") or ch in "\u200c\u200d"
+
+
+def fix_words(words: list) -> list:
+    """Whisper sometimes splits a Hindi word in the middle of a letter (e.g. "ह" + "ोता").
+    Join those pieces back so captions don't show broken letters with dotted circles."""
+    out = []
+    for w in words:
+        t = (w.get("word") or "").strip()
+        if not t:
+            continue
+        if out and (_is_mark(t[0]) or out[-1]["word"].endswith("\u094d")):
+            prev = out[-1]
+            prev["word"] = prev["word"] + t
+            prev["end"] = max(prev["end"], w["end"])
+            continue
+        out.append(dict(w, word=t))
+    return out
+
+
 def build_cues(segments: list, start: float, end: float, words_per_cue: int = 3, max_chars: int = 24) -> list:
     """Group transcript words inside [start, end] into short caption cues (source timeline)."""
     words = []
@@ -89,7 +119,7 @@ def build_cues(segments: list, start: float, end: float, words_per_cue: int = 3,
             d = (s["end"] - s["start"]) / max(1, len(toks))
             ws = [{"start": s["start"] + i * d, "end": s["start"] + (i + 1) * d, "word": t}
                   for i, t in enumerate(toks)]
-        for w in ws:
+        for w in fix_words(ws):
             if w["end"] > start and w["start"] < end:
                 words.append({"start": max(start, w["start"]), "end": min(end, w["end"]), "word": w["word"]})
     cues, cur = [], []
@@ -118,6 +148,7 @@ def build_cues(segments: list, start: float, end: float, words_per_cue: int = 3,
 
 def respread_words(cue: dict) -> dict:
     """After editing/translating text, spread new words across the cue time."""
+    cue["text"] = fix_text(cue["text"])
     toks = cue["text"].split()
     d = (cue["end"] - cue["start"]) / max(1, len(toks))
     cue["words"] = [{"start": round(cue["start"] + i * d, 3), "end": round(cue["start"] + (i + 1) * d, 3), "word": t}
@@ -158,10 +189,10 @@ def build_ass(cues: list, clip_start: float, clip_end: float, style_id: str = "h
         "Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
         "Alignment, MarginL, MarginR, MarginV, Encoding",
         f"Style: Cap,{st['font']},{font_size},{_c(st['color'])},{_c(st.get('karaoke') or st['color'])},"
-        f"{outline_col},{back},0,0,0,0,100,100,1,0,{border_style},{bord:.1f},{st['shadow'] * scale:.1f},"
+        f"{outline_col},{back},0,0,0,0,100,100,{0 if st['deva'] else 1},0,{border_style},{bord:.1f},{st['shadow'] * scale:.1f},"
         f"{align},{int(70 * scale)},{int(70 * scale)},{int(margin_v * scale)},1",
         f"Style: CapHi,{HINDI_FALLBACK},{int(88 * scale)},{_c(st['color'])},{_c(st.get('karaoke') or st['color'])},"
-        f"{outline_col},{back},0,0,0,0,100,100,1,0,{border_style},{bord:.1f},{st['shadow'] * scale:.1f},"
+        f"{outline_col},{back},0,0,0,0,100,100,0,0,{border_style},{bord:.1f},{st['shadow'] * scale:.1f},"
         f"{align},{int(70 * scale)},{int(70 * scale)},{int(margin_v * scale)},1",
         f"Style: Hook,Mukta ExtraBold,{int(64 * scale)},{_c('#111111')},{_c('#111111')},{_c('#FFE600')},"
         f"{_c('#FFE600')},0,0,0,0,100,100,0,0,3,{18 * scale:.1f},0,8,{int(90 * scale)},{int(90 * scale)},"

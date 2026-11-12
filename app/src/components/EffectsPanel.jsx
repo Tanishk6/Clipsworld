@@ -95,6 +95,13 @@ export default function EffectsPanel({ project, clip, patch, replaceClip, time, 
       <p className="hint"><Sparkles size={12} /> Auto edit adds zooms, shake, replay, text pops and sounds on the best moments.</p>
 
       <div className="field">
+        <label><Music2 size={14} /> Sound effects volume <span className="muted">{Math.round((clip.audio?.sfx_volume ?? 1) * 100)}%</span></label>
+        <input type="range" min="0" max="2" step="0.05" value={clip.audio?.sfx_volume ?? 1}
+          onChange={(e) => patch({ audio: { sfx_volume: Number(e.target.value) } }, true)} />
+        <div className="row between muted tiny"><span>Off</span><span>Normal</span><span>Loud</span></div>
+      </div>
+
+      <div className="field">
         <label>Add at playhead <span className="muted mono">{fmtTime(rel, true)}</span></label>
         <div className="fx-add">
           {Object.entries(FX_META).map(([k, m]) => {
@@ -133,7 +140,7 @@ export default function EffectsPanel({ project, clip, patch, replaceClip, time, 
                       {e.type === "replay" && <Num label="Speed ×" value={e.speed} min={0.5} max={1} step={0.05} onChange={(v) => upd(e.id, { speed: v })} />}
                       {e.type === "shake" && <Num label="Strength" value={e.strength} min={0.3} max={3} step={0.1} onChange={(v) => upd(e.id, { strength: v })} />}
                       {e.type === "freeze" && <Num label="Zoom ×" value={e.zoom} min={1} max={1.6} step={0.02} onChange={(v) => upd(e.id, { zoom: v })} />}
-                      {e.type === "sfx" && <Num label="Volume" value={e.volume} min={0} max={2} step={0.05} onChange={(v) => upd(e.id, { volume: v })} />}
+
                     </div>
                     {e.type === "zoom" && (
                       <div className="fx-grid">
@@ -174,6 +181,12 @@ export default function EffectsPanel({ project, clip, patch, replaceClip, time, 
                     <label className="num full"><span>Sound</span>
                       <SfxSelect value={e.sfx} list={sfx} onChange={(v) => upd(e.id, { sfx: v })} allowNone={e.type !== "sfx"} />
                     </label>
+                    {e.sfx && (
+                      <label className="num full"><span>Sound volume · {Math.round((e.volume ?? 0.85) * 100)}%</span>
+                        <input type="range" min="0" max="2" step="0.05" value={e.volume ?? 0.85}
+                          onChange={(ev) => upd(e.id, { volume: Number(ev.target.value) })} />
+                      </label>
+                    )}
                   </div>
                 )}
               </div>

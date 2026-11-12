@@ -190,7 +190,7 @@ def export_clip(job, project: dict, clip: dict, settings: dict, progress_range=(
                 mix = ["abd", "vo2"]
             else:
                 mix.append("vo")
-        for k, s in enumerate(fx.sound_events(segs, effs)):
+        for k, s in enumerate(fx.sound_events(segs, effs, aud.get("sfx_volume", 1.0))):
             inputs += ["-i", s["path"]]
             ms = int(s["t"] * 1000)
             parts.append(f"[{n_in}:a]{afmt},volume={s['volume']:.3f},adelay={ms}|{ms}[sx{k}]")

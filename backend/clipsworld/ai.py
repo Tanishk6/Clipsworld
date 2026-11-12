@@ -29,8 +29,9 @@ Reply with JSON only, no other text:
 LANG_NAMES = {
     "en": "English",
     "hi": "Hindi written in Devanagari script",
-    "hinglish": "Hinglish: Hindi written in Roman (English) letters, the way Indian YouTubers type "
-                "comments (for example “bhai ye kya ho gaya”). Keep English words in English.",
+    "hinglish": "Hinglish: write the SAME words in Roman (English) letters, the way Indian YouTubers type "
+                "(for example “भाई ये क्या हो गया” → “bhai ye kya ho gaya”). Transliterate Hindi words, do not "
+                "translate their meaning; keep English words as they are. If a line is already English, keep it.",
 }
 
 
@@ -45,13 +46,10 @@ def _client(key: str):
     return anthropic.Anthropic(api_key=key, max_retries=3, timeout=180)
 
 
-def _ask(key, model, system, user, max_tokens=4000) -> str:
+def _call(key, model, **kw):
     import anthropic
     try:
-        msg = _client(key).messages.create(
-            model=model, max_tokens=max_tokens, system=system,
-            messages=[{"role": "user", "content": user}],
-        )
+        return _client(key).messages.create(model=model, **kw)
     except anthropic.AuthenticationError:
         raise AIError("Claude rejected the API key. Check it in Settings.")
     except anthropic.PermissionDeniedError as e:
@@ -67,7 +65,57 @@ def _ask(key, model, system, user, max_tokens=4000) -> str:
         raise AIError(f"Claude API error: {m}")
     except anthropic.APIConnectionError:
         raise AIError("Can't reach Claude. Check your internet connection.")
+
+
+def _ask(key, model, system, user, max_tokens=4000) -> str:
+    msg = _call(key, model, max_tokens=max_tokens, system=system, messages=[{"role": "user", "content": user}])
     return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+
+
+def _log(name: str, text: str):
+    try:
+        from .paths import data_dir
+        d = data_dir() / "logs"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"claude_{name}.txt").write_text(text[-20000:], encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _ask_json(key, model, system, user, schema: dict, name: str, max_tokens=4000) -> dict:
+    """Ask Claude for structured data. Uses a forced tool call so the answer is always valid JSON."""
+    last = None
+    for attempt in range(2):
+        msg = _call(key, model, max_tokens=max_tokens, system=system,
+                    messages=[{"role": "user", "content": user}],
+                    tools=[{"name": "answer", "description": "Return the result.", "input_schema": schema}],
+                    tool_choice={"type": "tool", "name": "answer"})
+        for b in msg.content:
+            if getattr(b, "type", "") == "tool_use" and isinstance(b.input, dict):
+                _log(name, json.dumps(b.input, ensure_ascii=False))
+                return b.input
+        text = "".join(getattr(b, "text", "") for b in msg.content)
+        _log(name, f"stop={getattr(msg, 'stop_reason', '')}\n{text}")
+        try:
+            return _parse_json(text)
+        except AIError as e:
+            last = e
+    raise last or AIError("Claude's answer was not in the expected format. Try again.")
+
+
+_STR = {"type": "string"}
+_NUM = {"type": "number"}
+SCHEMA_CLIPS = {"type": "object", "required": ["clips"], "properties": {"clips": {"type": "array", "items": {
+    "type": "object", "required": ["start", "end", "title"],
+    "properties": {"start": _NUM, "end": _NUM, "title": _STR, "hook": _STR, "reason": _STR, "category": _STR,
+                   "score": _NUM}}}}}
+SCHEMA_LINES = {"type": "object", "required": ["lines"], "properties": {"lines": {"type": "array", "items": _STR}}}
+SCHEMA_EDIT = {"type": "object", "required": ["effects"], "properties": {"effects": {"type": "array", "items": {
+    "type": "object", "required": ["type", "t"],
+    "properties": {"type": {"type": "string", "enum": ["zoom", "shake", "freeze", "replay", "text", "sfx"]},
+                   "t": _NUM, "dur": _NUM, "scale": _NUM, "ease": _STR, "speed": _NUM, "text": _STR, "sfx": _STR}}}}}
+SCHEMA_META = {"type": "object", "required": ["title", "description", "hashtags"],
+               "properties": {"title": _STR, "description": _STR, "hashtags": {"type": "array", "items": _STR}}}
 
 
 def _parse_json(text: str):
@@ -76,10 +124,18 @@ def _parse_json(text: str):
     if fence:
         text = fence.group(1)
     start = text.find("{")
-    end = text.rfind("}")
-    if start < 0 or end < 0:
+    if start < 0:
         raise AIError("Claude's answer was not in the expected format. Try again.")
-    return json.loads(text[start:end + 1])
+    try:
+        # read only the first JSON object, ignore anything Claude wrote after it
+        obj, _ = json.JSONDecoder().raw_decode(text[start:])
+        return obj
+    except json.JSONDecodeError:
+        end = text.rfind("}")
+        try:
+            return json.loads(text[start:end + 1])
+        except json.JSONDecodeError:
+            raise AIError("Claude's answer was not in the expected format. Try again.")
 
 
 def test_key(key: str, model: str) -> dict:
@@ -127,7 +183,7 @@ def find_clips(job, segments, loud, duration, settings) -> list:
                 f"Audio analysis found these loud/reaction moments (seconds):\n{hint_txt}\n\n"
                 f"Transcript with [start-end] seconds:\n" + "\n".join(lines) +
                 f"\n\nFind the best {want} clips in this part (fewer if the content is weak).")
-        data = _parse_json(_ask(key, model, system, user, max_tokens=4000))
+        data = _ask_json(key, model, system, user, SCHEMA_CLIPS, "clips", max_tokens=4000)
         for c in data.get("clips", []):
             try:
                 s, e = float(c["start"]), float(c["end"])
@@ -172,8 +228,12 @@ def translate_lines(job, lines: list, target: str, settings: dict) -> list:
                   'Reply with JSON only: {"lines": ["...", "..."]} with exactly the same number of lines.')
         user = (f"Translate every line into {LANG_NAMES[target]}.\n" +
                 json.dumps({"lines": part}, ensure_ascii=False))
-        data = _parse_json(_ask(key, model, system, user, max_tokens=4000))
-        got = [str(x) for x in data.get("lines", [])]
+        got = []
+        for attempt in range(2):
+            data = _ask_json(key, model, system, user, SCHEMA_LINES, "translate", max_tokens=6000)
+            got = [str(x) for x in data.get("lines", [])]
+            if len(got) == len(part):
+                break
         if len(got) != len(part):
             got = (got + part)[:len(part)]
         out.extend(got)
@@ -209,7 +269,7 @@ def auto_edit(segments, clip, peaks, settings, sfx_names) -> list:
     hint = ", ".join(f"{t:.1f}s" for t in peaks) or "none"
     user = (f"Clip length: {s1 - s0:.1f} seconds. Title: {clip.get('title', '')}\n"
             f"Loudest reaction moments: {hint}\nTranscript (seconds from clip start):\n" + "\n".join(lines))
-    data = _parse_json(_ask(key, model, SYSTEM_EDIT.format(sfx=", ".join(sfx_names)), user, max_tokens=1500))
+    data = _ask_json(key, model, SYSTEM_EDIT.format(sfx=", ".join(sfx_names)), user, SCHEMA_EDIT, "edit", max_tokens=2000)
     return data.get("effects", [])
 
 
@@ -218,7 +278,7 @@ def metadata(clip, transcript_text, language, credit, settings) -> dict:
     lang = {"hinglish": "Hinglish (Roman Hindi)", "hi": "Hindi (Devanagari)", "en": "English"}.get(language, language)
     user = (f"Language style: {lang}\nClip title idea: {clip.get('title', '')}\nCategory: {clip.get('category', '')}\n"
             f"Credit: {credit or 'none'}\nWhat is said in the clip:\n{transcript_text[:3000]}")
-    data = _parse_json(_ask(key, model, SYSTEM_META, user, max_tokens=800))
+    data = _ask_json(key, model, SYSTEM_META, user, SCHEMA_META, "meta", max_tokens=1000)
     tags = [t if t.startswith("#") else "#" + t for t in (str(x).strip().replace(" ", "") for x in data.get("hashtags", [])) if t]
     if "#shorts" not in [t.lower() for t in tags]:
         tags.insert(0, "#shorts")
