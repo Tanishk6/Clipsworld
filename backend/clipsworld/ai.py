@@ -82,6 +82,23 @@ def _log(name: str, text: str):
         pass
 
 
+def _as_list(v) -> list:
+    """Claude sometimes returns a list as a JSON string ('["a","b"]') or one text block. Make it a real list."""
+    if isinstance(v, list):
+        return v
+    if isinstance(v, str):
+        t = v.strip()
+        if t.startswith("["):
+            try:
+                x = json.loads(t)
+                if isinstance(x, list):
+                    return x
+            except json.JSONDecodeError:
+                pass
+        return [ln.strip() for ln in t.splitlines() if ln.strip()]
+    return []
+
+
 def _ask_json(key, model, system, user, schema: dict, name: str, max_tokens=4000) -> dict:
     """Ask Claude for structured data. Uses a forced tool call so the answer is always valid JSON."""
     last = None
@@ -109,7 +126,9 @@ SCHEMA_CLIPS = {"type": "object", "required": ["clips"], "properties": {"clips":
     "type": "object", "required": ["start", "end", "title"],
     "properties": {"start": _NUM, "end": _NUM, "title": _STR, "hook": _STR, "reason": _STR, "category": _STR,
                    "score": _NUM}}}}}
-SCHEMA_LINES = {"type": "object", "required": ["lines"], "properties": {"lines": {"type": "array", "items": _STR}}}
+SCHEMA_LINES = {"type": "object", "required": ["lines"], "properties": {"lines": {
+    "type": "array", "items": _STR,
+    "description": "A JSON array with exactly one translated string per input line, in the same order."}}}
 SCHEMA_EDIT = {"type": "object", "required": ["effects"], "properties": {"effects": {"type": "array", "items": {
     "type": "object", "required": ["type", "t"],
     "properties": {"type": {"type": "string", "enum": ["zoom", "shake", "freeze", "replay", "text", "sfx"]},
@@ -184,7 +203,9 @@ def find_clips(job, segments, loud, duration, settings) -> list:
                 f"Transcript with [start-end] seconds:\n" + "\n".join(lines) +
                 f"\n\nFind the best {want} clips in this part (fewer if the content is weak).")
         data = _ask_json(key, model, system, user, SCHEMA_CLIPS, "clips", max_tokens=4000)
-        for c in data.get("clips", []):
+        for c in _as_list(data.get("clips")):
+            if not isinstance(c, dict):
+                continue
             try:
                 s, e = float(c["start"]), float(c["end"])
             except (KeyError, TypeError, ValueError):
@@ -229,13 +250,13 @@ def translate_lines(job, lines: list, target: str, settings: dict) -> list:
         user = (f"Translate every line into {LANG_NAMES[target]}.\n" +
                 json.dumps({"lines": part}, ensure_ascii=False))
         got = []
-        for attempt in range(2):
+        for attempt in range(3):
             data = _ask_json(key, model, system, user, SCHEMA_LINES, "translate", max_tokens=6000)
-            got = [str(x) for x in data.get("lines", [])]
+            got = [str(x).strip() for x in _as_list(data.get("lines"))]
             if len(got) == len(part):
                 break
         if len(got) != len(part):
-            got = (got + part)[:len(part)]
+            raise AIError("Claude's translation didn't match the caption lines. Try again.")
         out.extend(got)
     return out
 
@@ -270,7 +291,7 @@ def auto_edit(segments, clip, peaks, settings, sfx_names) -> list:
     user = (f"Clip length: {s1 - s0:.1f} seconds. Title: {clip.get('title', '')}\n"
             f"Loudest reaction moments: {hint}\nTranscript (seconds from clip start):\n" + "\n".join(lines))
     data = _ask_json(key, model, SYSTEM_EDIT.format(sfx=", ".join(sfx_names)), user, SCHEMA_EDIT, "edit", max_tokens=2000)
-    return data.get("effects", [])
+    return [e for e in _as_list(data.get("effects")) if isinstance(e, dict)]
 
 
 def metadata(clip, transcript_text, language, credit, settings) -> dict:
@@ -279,7 +300,7 @@ def metadata(clip, transcript_text, language, credit, settings) -> dict:
     user = (f"Language style: {lang}\nClip title idea: {clip.get('title', '')}\nCategory: {clip.get('category', '')}\n"
             f"Credit: {credit or 'none'}\nWhat is said in the clip:\n{transcript_text[:3000]}")
     data = _ask_json(key, model, SYSTEM_META, user, SCHEMA_META, "meta", max_tokens=1000)
-    tags = [t if t.startswith("#") else "#" + t for t in (str(x).strip().replace(" ", "") for x in data.get("hashtags", [])) if t]
+    tags = [t if t.startswith("#") else "#" + t for t in (str(x).strip().replace(" ", "") for x in _as_list(data.get("hashtags"))) if t]
     if "#shorts" not in [t.lower() for t in tags]:
         tags.insert(0, "#shorts")
     return {"title": str(data.get("title", ""))[:100], "description": str(data.get("description", ""))[:4000],
