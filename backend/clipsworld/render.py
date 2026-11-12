@@ -106,8 +106,14 @@ def export_clip(job, project: dict, clip: dict, settings: dict, progress_range=(
     if preview:
         out_path = preview_path
     else:
-        out_dir = Path(settings.get("output_dir")) / safe_name(project.get("name", "Clipsworld"), 50)
-        out_dir.mkdir(parents=True, exist_ok=True)
+        from .paths import default_output_dir
+        base = Path(settings.get("output_dir") or default_output_dir())
+        out_dir = base / safe_name(project.get("name", "Clipsworld"), 50)
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            out_dir = default_output_dir() / safe_name(project.get("name", "Clipsworld"), 50)
+            out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{safe_name(clip.get('title') or 'clip')} [{clip['id']}].mp4"
 
     work = Path(tempfile.mkdtemp(prefix="cw_"))
