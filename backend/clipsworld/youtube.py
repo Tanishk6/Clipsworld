@@ -272,3 +272,36 @@ def video_status(video_id: str) -> dict:
     r = _api("GET", "/youtube/v3/videos", params={"part": "status", "id": video_id})
     items = r.get("items") or []
     return items[0].get("status", {}) if items else {}
+
+
+class ThumbRetry(YTError):
+    """The video isn't ready for a thumbnail yet (still processing) or the rate limit hit: try later."""
+
+
+def set_thumbnail(video_id: str, path: str) -> dict:
+    """Upload a custom thumbnail (JPG/PNG, max 2 MB). Needs a phone-verified channel."""
+    data = Path(path).read_bytes()
+    if len(data) > 2 * 1024 * 1024:
+        raise YTError("The thumbnail is bigger than 2 MB.")
+    ctype = "image/png" if str(path).lower().endswith(".png") else "image/jpeg"
+    req = urllib.request.Request(
+        f"{API}/upload/youtube/v3/thumbnails/set?" + urllib.parse.urlencode({"videoId": video_id, "uploadType": "media"}),
+        data=data, method="POST",
+        headers={"Authorization": f"Bearer {access_token()}", "Content-Type": ctype, "Content-Length": str(len(data))})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        text = e.read().decode(errors="replace")
+        try:
+            reason = (json.loads(text).get("error", {}).get("errors") or [{}])[0].get("reason", "")
+        except Exception:  # noqa: BLE001
+            reason = ""
+        if e.code == 403 and reason in ("forbidden", ""):
+            raise YTError("YouTube didn't allow a custom thumbnail. Verify your channel with your phone at "
+                          "youtube.com/verify, then press Retry thumbnail.")
+        if e.code in (404, 409, 429, 500, 502, 503) or reason in ("videoNotFound", "uploadRateLimitExceeded"):
+            raise ThumbRetry(f"YouTube isn't ready for the thumbnail yet ({reason or e.code}).")
+        raise YTError(_explain(e.code, text))
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+        raise ThumbRetry(f"Network problem ({e}).")

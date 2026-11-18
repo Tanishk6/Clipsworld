@@ -331,6 +331,12 @@ def tick(force: bool = False):
                     _save(st)
                     _run("upload", _upload, it["id"])
                     return "upload"
+            for it in st["items"]:
+                if it.get("thumb_state") == "pending" and it.get("video_id") and now >= it.get("thumb_next", 0):
+                    it["thumb_state"] = "setting"
+                    _save(st)
+                    _run("thumbnail", _set_thumb, it["id"])
+                    return "thumbnail"
         # 2) regenerate items the user asked to redo
         for it in st["items"]:
             if it["status"] == "queued_again":
@@ -468,6 +474,17 @@ def _produce(iid: str):
             render.export_clip(_Progress(0.15 if err is None else 0.5, 0.85 if err is None else 0.5), p, c, s,
                                out_override=out)
             engine = "clipsworld"
+        thumb = None
+        if s.get("ap_thumbnails", True):
+            _worker["stage"] = "Making the thumbnail…"
+            try:
+                from . import thumbnails
+                p = projects.load(pid)
+                c = projects._defaults(projects.get_clip(p, cid))
+                thumb = thumbnails.make(p, c, s, out.with_name(out.stem + "_thumb.jpg"))
+            except Exception as e:  # a thumbnail problem never blocks the clip
+                traceback.print_exc()
+                thumb = {"error": str(e)[:200]}
         meta = c.get("meta") or {}
         tags = [t.lstrip("#") for t in (meta.get("hashtags") or []) if t]
         desc = meta.get("description") or c.get("hook") or ""
@@ -479,6 +496,11 @@ def _produce(iid: str):
         with _lock:
             st = _load()
             it = _item(st, iid)
+            if thumb and thumb.get("path"):
+                it.update(thumb_path=thumb["path"], thumb_design=thumb["design"], thumb_state="ready",
+                          thumb_v=int(time.time()))
+            elif thumb:
+                it.update(thumb_state="error", thumb_error=thumb.get("error"))
             it.update(video_path=str(out), engine=engine, engine_note=err,
                       title=(meta.get("title") or c.get("title") or "Clip")[:100], description=desc[:4900],
                       tags=tags[:30], thumb=f"{projects.pdir(pid)}/thumb_{cid}.jpg", duration=round(c["end"] - c["start"], 1))
@@ -528,6 +550,8 @@ def _upload(iid: str):
             it = _item(st, iid)
             it.update(status="scheduled" if schedule else "uploaded", video_id=vid, error=None,
                       uploaded_at=int(time.time()), yt_privacy=info.get("privacyStatus"))
+            if it.get("thumb_path") and Path(it["thumb_path"]).exists():
+                it.update(thumb_state="pending", thumb_tries=0, thumb_next=time.time() + 20)
             locked = info.get("privacyStatus") == "private" and not info.get("publishAt") and \
                 (s.get("ap_privacy") or "public") != "private"
             if locked:
@@ -550,6 +574,69 @@ def _upload(iid: str):
             _save(st)
 
 
+def _set_thumb(iid: str):
+    with _lock:
+        st = _load()
+        it = _item(st, iid)
+    _worker.update(item=iid, stage=f"Setting the thumbnail for “{it['title']}”…")
+    try:
+        youtube.set_thumbnail(it["video_id"], it["thumb_path"])
+        state, note = "set", None
+    except youtube.ThumbRetry as e:
+        state, note = "pending", str(e)
+    except Exception as e:  # noqa: BLE001
+        state, note = "failed", str(e)[:300]
+    with _lock:
+        st = _load()
+        it = _item(st, iid)
+        it["thumb_tries"] = it.get("thumb_tries", 0) + (1 if state == "pending" else 0)
+        if state == "pending" and it["thumb_tries"] >= 10:
+            state, note = "failed", note or "YouTube never accepted the thumbnail."
+        it.update(thumb_state=state, thumb_error=note,
+                  thumb_next=time.time() + min(1800, 60 * 2 ** min(it["thumb_tries"], 5)))
+        if state == "set":
+            _log(st, f"Thumbnail set for “{it['title']}”.")
+        elif state == "failed":
+            _log(st, f"Thumbnail not set for “{it['title']}”: {note}")
+        _save(st)
+
+
+def remake_thumbnail(iid: str, body: dict) -> dict:
+    """From the Review card: new design by Claude (remake) or just new text/colour on the same frame."""
+    from . import thumbnails
+    with _lock:
+        st = _load()
+        it = _item(st, iid)
+    s = settings_mod.load()
+    p = projects.load(it["project_id"])
+    c = projects._defaults(projects.get_clip(p, it["clip_id"]))
+    override = {k: body[k] for k in ("headline", "subline", "color", "font") if body.get(k) is not None}
+    remake = bool(body.get("remake")) or not it.get("thumb_design")
+    path = Path(it.get("thumb_path") or Path(it["video_path"]).with_name(Path(it["video_path"]).stem + "_thumb.jpg"))
+    r = thumbnails.make(p, c, s, path, override=override or None, remake=remake, previous=it.get("thumb_design"))
+    with _lock:
+        st = _load()
+        it = _item(st, iid)
+        it.update(thumb_path=r["path"], thumb_design=r["design"], thumb_v=int(time.time()), thumb_error=None)
+        if it.get("video_id"):
+            it.update(thumb_state="pending", thumb_tries=0, thumb_next=0)
+        else:
+            it["thumb_state"] = "ready"
+        _save(st)
+        return it
+
+
+def retry_thumbnail(iid: str) -> dict:
+    with _lock:
+        st = _load()
+        it = _item(st, iid)
+        if not it.get("video_id") or not it.get("thumb_path"):
+            raise ValueError("This clip isn't on YouTube yet.")
+        it.update(thumb_state="pending", thumb_tries=0, thumb_next=0, thumb_error=None)
+        _save(st)
+        return it
+
+
 # ------------------------------------------------------------------ loop
 
 def start_loop():
@@ -563,6 +650,8 @@ def start_loop():
                 it["status"] = "queued_again"
             elif it["status"] == "uploading":
                 it["status"] = "approved"
+            if it.get("thumb_state") == "setting":
+                it["thumb_state"] = "pending"
         for src in st["sources"]:
             if src["status"] == "analysing":
                 src["status"] = "queued"

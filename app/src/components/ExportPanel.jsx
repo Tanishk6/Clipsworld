@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CheckCircle2, Copy, Download, FolderOpen, Loader2, Play, ShieldCheck, Sparkles, XCircle, Info } from "lucide-react";
 import { api, desktop, url, waitForJob } from "../api.js";
 import { useApp, useToast } from "../App.jsx";
+import ThumbEditor from "./ThumbEditor.jsx";
 
 function OriginalityCard({ project, clip }) {
   const [r, setR] = useState(null);
@@ -150,6 +151,18 @@ export default function ExportPanel({ project, clip, patch, replaceClip, setProj
           </div>
         </div>
         <p className="hint">Saved next to the video as a .txt file when you export.</p>
+      </div>
+
+      <div className="field">
+        <label>Thumbnail</label>
+        <ThumbEditor
+          src={clip.thumbnail?.path ? `${url.file(clip.thumbnail.path)}&v=${clip.thumbnail.v}` : null}
+          design={clip.thumbnail?.design}
+          emptyLabel={settings.has_api_key ? "Make thumbnail with AI" : "Make thumbnail"}
+          onMake={async (body) => {
+            try { replaceClip(await api.clipThumb(project.id, clip.id, body)); } catch (e) { toast(e.message, "error"); }
+          }} />
+        <p className="hint">Claude picks the best frame and writes the text. Saved next to the video when you export (1080×1920, under 2 MB).</p>
       </div>
 
       <div className="export-box">

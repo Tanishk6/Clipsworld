@@ -14,7 +14,7 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "1.6.0"
+VERSION = "1.7.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -244,6 +244,15 @@ def frame(pid: str, t: float = 0.0):
 def clip_preview(pid: str, cid: str):
     projects.get_clip(_project(pid), cid)
     return jobs.start("preview", pid, projects.preview, pid, cid).to_dict()
+
+
+@app.post("/projects/{pid}/clips/{cid}/thumbnail")
+def clip_thumbnail(pid: str, cid: str, body: dict = Body(default={})):
+    _project(pid)
+    try:
+        return projects.make_thumbnail(pid, cid, body)
+    except RuntimeError as e:
+        raise HTTPException(400, str(e))
 
 
 @app.post("/projects/{pid}/clips/{cid}/auto-edit")
@@ -477,6 +486,21 @@ def ap_delete(iid: str):
     from clipsworld import autopilot
     _ap_call(autopilot.delete_item, iid)
     return {"ok": True}
+
+
+@app.post("/autopilot/items/{iid}/thumbnail")
+def ap_thumb(iid: str, body: dict = Body(default={})):
+    from clipsworld import autopilot
+    try:
+        return _ap_call(autopilot.remake_thumbnail, iid, body)
+    except RuntimeError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.post("/autopilot/items/{iid}/thumbnail/retry")
+def ap_thumb_retry(iid: str):
+    from clipsworld import autopilot
+    return _ap_call(autopilot.retry_thumbnail, iid)
 
 
 @app.post("/autopilot/run")

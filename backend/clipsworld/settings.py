@@ -27,6 +27,7 @@ DEFAULTS = {
     "ap_buffer_days": 2,
     "ap_clips_per_video": 6,
     "ap_min_score": 0,
+    "ap_thumbnails": True,
 }
 
 _lock = threading.Lock()

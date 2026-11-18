@@ -5,3 +5,4 @@ anthropic==2.8.0
 yt-dlp[default]==2026.10.26
 numpy>=2.0
 av>=14,<16
+pillow>=11

@@ -99,12 +99,22 @@ def _as_list(v) -> list:
     return []
 
 
-def _ask_json(key, model, system, user, schema: dict, name: str, max_tokens=4000) -> dict:
-    """Ask Claude for structured data. Uses a forced tool call so the answer is always valid JSON."""
+def _ask_json(key, model, system, user, schema: dict, name: str, max_tokens=4000, images=None) -> dict:
+    """Ask Claude for structured data. Uses a forced tool call so the answer is always valid JSON.
+    images: optional list of JPEG bytes shown to Claude before the text."""
     last = None
+    content = user
+    if images:
+        import base64
+        content = []
+        for i, b in enumerate(images):
+            content.append({"type": "text", "text": f"Image {i}:"})
+            content.append({"type": "image", "source": {"type": "base64", "media_type": "image/jpeg",
+                                                         "data": base64.b64encode(b).decode()}})
+        content.append({"type": "text", "text": user})
     for attempt in range(2):
         msg = _call(key, model, max_tokens=max_tokens, system=system,
-                    messages=[{"role": "user", "content": user}],
+                    messages=[{"role": "user", "content": content}],
                     tools=[{"name": "answer", "description": "Return the result.", "input_schema": schema}],
                     tool_choice={"type": "tool", "name": "answer"})
         for b in msg.content:

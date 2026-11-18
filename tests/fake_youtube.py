@@ -11,6 +11,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 VIDEOS = {}
+THUMBS = {}
 SESSIONS = {}
 CODES = {"good-code"}
 LOG = []
@@ -44,7 +45,7 @@ class H(BaseHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path)
         q = dict(urllib.parse.parse_qsl(u.query))
         if u.path == "/_videos":
-            return self._json(200, {"videos": VIDEOS, "log": LOG})
+            return self._json(200, {"videos": VIDEOS, "log": LOG, "thumbs": THUMBS})
         if not self._authed():
             return
         if u.path == "/youtube/v3/channels":
@@ -69,6 +70,20 @@ class H(BaseHTTPRequestHandler):
             if f.get("grant_type") == "refresh_token" and f.get("refresh_token") == "rt-1":
                 return self._json(200, {"access_token": "at-" + uuid.uuid4().hex[:6], "expires_in": 3600})
             return self._json(400, {"error": "invalid_grant"})
+        if u.path == "/upload/youtube/v3/thumbnails/set":
+            if not self._authed():
+                return
+            q = dict(urllib.parse.parse_qsl(u.query))
+            vid = q.get("videoId")
+            if vid not in VIDEOS:
+                return self._json(404, {"error": {"code": 404, "errors": [{"reason": "videoNotFound"}]}})
+            if not VIDEOS[vid].get("thumb_tried"):  # first try: still processing
+                VIDEOS[vid]["thumb_tried"] = True
+                return self._json(404, {"error": {"code": 404, "errors": [{"reason": "videoNotFound"}]}})
+            if len(body) > 2 * 1024 * 1024 or self.headers.get("Content-Type") not in ("image/jpeg", "image/png"):
+                return self._json(400, {"error": {"code": 400, "errors": [{"reason": "invalidImage"}]}})
+            THUMBS[vid] = {"bytes": len(body), "jpeg": body[:3] == b"\xff\xd8\xff"}
+            return self._json(200, {"kind": "youtube#thumbnailSetResponse", "items": [{"default": {"url": "x"}}]})
         if u.path == "/upload/youtube/v3/videos":
             if not self._authed():
                 return

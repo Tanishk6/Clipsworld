@@ -197,6 +197,12 @@ try:
             if HF:
                 assert it["engine"] == "hyperframes", f"HyperFrames fell back: {it.get('engine_note')}"
         assert items[0]["style"] != items[1]["style"], "caption styles should rotate"
+        for it in items:
+            assert it.get("thumb_state") == "ready" and Path(it["thumb_path"]).exists(), it
+            pr = probe(it["thumb_path"])
+            v = pr["streams"][0]
+            assert (v["width"], v["height"]) == (1080, 1920), v
+            assert Path(it["thumb_path"]).stat().st_size < 2 * 1024 * 1024
         assert call("GET", "/autopilot")["counts"].get("review") == 2  # buffer = 2/day x 1 day: stops making more
         S["items"] = [i["id"] for i in items]
         print("    engines:", [i["engine"] for i in items], "notes:", [i.get("engine_note") for i in items])
@@ -217,6 +223,25 @@ try:
             assert local.strftime("%H:%M") in ("09:00", "18:30"), local
             assert local > datetime.now().astimezone()
         S["slots"] = {a: it["publish_at"], b: it2["publish_at"]}
+    def t_thumb_edit():
+        a = S["items"][0]
+        before = next(i for i in call("GET", "/autopilot")["items"] if i["id"] == a)
+        it = call("POST", f"/autopilot/items/{a}/thumbnail", {"headline": "Bhai ye kya hua", "color": "red"})
+        assert it["thumb_design"]["headline"] == "Bhai ye kya hua" and it["thumb_design"]["color"] == "red", it
+        assert it["thumb_design"]["t"] == before["thumb_design"]["t"], "text change must keep the same frame"
+        assert it["thumb_v"] >= before["thumb_v"]
+        it2 = call("POST", f"/autopilot/items/{a}/thumbnail", {"remake": True})
+        assert Path(it2["thumb_path"]).exists()
+        call("POST", "/autopilot/items/nope/thumbnail", {}, ok=(404,))
+        # thumbnail maker in the normal editor
+        p = call("GET", f"/projects/{S['pid']}")
+        cid = p["clips"][0]["id"]
+        c = call("POST", f"/projects/{S['pid']}/clips/{cid}/thumbnail", {})
+        assert Path(c["thumbnail"]["path"]).exists(), c.get("thumbnail")
+        c2 = call("POST", f"/projects/{S['pid']}/clips/{cid}/thumbnail", {"headline": "1 HP CLUTCH", "subline": "last second"})
+        assert c2["thumbnail"]["design"]["headline"] == "1 HP CLUTCH"
+    check("thumbnail maker: edit text, remake, editor", t_thumb_edit)
+
     check("review: edit + approve → next free time slots", t_review)
 
     def t_upload():
@@ -234,6 +259,16 @@ try:
         assert any(v["snippet"]["title"].startswith("Bhai ye kya hua") for v in vids.values())
         assert call("POST", f"/autopilot/items/{S['items'][0]}/reject", ok=(409,))
     check("scheduled uploads reach YouTube (resumable, survives a 503)", t_upload)
+
+    def t_thumb_upload():
+        st = drive(lambda s: all(i.get("thumb_state") in ("set", "failed") for i in s["items"] if i["id"] in S["items"]),
+                   label="thumbnail", limit=420)
+        thumbs = call("GET", "/_videos", base=YT)["thumbs"]
+        for iid in S["items"]:
+            it = next(i for i in st["items"] if i["id"] == iid)
+            assert it["thumb_state"] == "set", it
+            assert thumbs[it["video_id"]]["jpeg"] and thumbs[it["video_id"]]["bytes"] > 10000, thumbs
+    check("thumbnails set on YouTube (retries while the video processes)", t_thumb_upload)
 
     def t_refill_and_cleanup():
         st = call("GET", "/autopilot")

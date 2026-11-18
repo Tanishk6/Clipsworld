@@ -438,6 +438,11 @@ def export(job, pid, cids: list):
             except Exception:
                 pass
         res = render.export_clip(job, p, c, s, (i / len(cids), (i + 1) / len(cids)))
+        th = (c.get("thumbnail") or {}).get("path")
+        if th and Path(th).exists():  # put the thumbnail next to the exported clip
+            dst = Path(res["path"]).with_name(Path(res["path"]).stem + " thumbnail.jpg")
+            shutil.copy(th, dst)
+            res["thumbnail"] = str(dst)
         with _lock(pid):
             p = load(pid)
             get_clip(p, cid).setdefault("exports", []).append(res)
@@ -563,6 +568,24 @@ def gen_metadata(job, pid, cid, language="original"):
         c["meta"] = meta
         save(p)
     return {"clip": c}
+
+
+def make_thumbnail(pid, cid, body: dict) -> dict:
+    """Thumbnail maker in the editor: Claude picks the frame + text (remake) or apply new text/colour."""
+    from . import thumbnails
+    s = settings_mod.load()
+    p = load(pid)
+    c = _defaults(get_clip(p, cid))
+    prev = (c.get("thumbnail") or {}).get("design")
+    override = {k: body[k] for k in ("headline", "subline", "color", "font") if body.get(k) is not None}
+    r = thumbnails.make(p, c, s, pdir(pid) / f"thumbnail_{cid}.jpg", override=override or None,
+                        remake=bool(body.get("remake")) or not prev, previous=prev)
+    with _lock(pid):
+        p = load(pid)
+        c = _defaults(get_clip(p, cid))
+        c["thumbnail"] = {"path": r["path"], "design": r["design"], "v": int(time.time())}
+        save(p)
+        return c
 
 
 def originality_check(pid, cid) -> dict:

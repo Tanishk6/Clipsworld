@@ -6,6 +6,7 @@ import {
 import { api, desktop, url } from "../api.js";
 import { useApp, useToast } from "../App.jsx";
 import { DownloadRow } from "../components/Downloads.jsx";
+import ThumbEditor from "../components/ThumbEditor.jsx";
 
 const open = (u) => (desktop ? desktop.openExternal(u) : window.open(u, "_blank"));
 
@@ -193,6 +194,11 @@ function ReviewCard({ it, slot, act }) {
         <textarea className="input" rows={4} value={desc} onChange={(e) => setDesc(e.target.value)} />
         <label>Tags <span className="muted">comma separated</span></label>
         <input className="input" value={tags} onChange={(e) => setTags(e.target.value)} />
+        <label>Thumbnail {it.thumb_state === "error" && <span className="bad">{it.thumb_error}</span>}</label>
+        <ThumbEditor compact
+          src={it.thumb_path ? `${url.file(it.thumb_path)}&v=${it.thumb_v || 0}` : null}
+          design={it.thumb_design}
+          onMake={(body) => act(() => api.apThumb(it.id, body))} />
         <div className="ap-actions">
           <span className="muted tiny"><CalendarClock size={13} /> Posts {when(slot)}</span>
           <div className="row gap">
@@ -225,10 +231,14 @@ function ScheduleTab({ items, act }) {
                 <CalendarClock size={12} /> {when(it.publish_at)}
                 {it.error && <span className="bad"> · {it.error}</span>}
                 {it.note && <span className="warnc"> · {it.note}</span>}
+                {it.thumb_state === "set" && <span className="okc"> · Thumbnail ✓</span>}
+                {["pending", "setting"].includes(it.thumb_state) && <span> · Thumbnail waiting for YouTube…</span>}
+                {it.thumb_state === "failed" && <span className="bad"> · Thumbnail: {it.thumb_error}</span>}
               </div>
             </div>
             <span className={"chip " + (live ? "ok" : kind)}>{live ? "Live on YouTube" : label}</span>
             {it.video_id && <button className="btn ghost sm" onClick={() => open(`https://youtu.be/${it.video_id}`)}><ExternalLink size={13} /> Open</button>}
+            {it.thumb_state === "failed" && it.video_id && <button className="btn sm" onClick={() => act(() => api.apThumbRetry(it.id), "Trying the thumbnail again")}><RotateCcw size={13} /> Retry thumbnail</button>}
             {["failed", "render_failed"].includes(it.status) && <button className="btn sm" onClick={() => act(() => api.apRetry(it.id), "Trying again")}><RotateCcw size={13} /> Retry</button>}
             {!["uploading", "producing"].includes(it.status) && (
               <button className="icon-btn" title="Remove from the list" onClick={() => act(() => api.apDelete(it.id))}><Trash2 size={15} /></button>
@@ -357,6 +367,7 @@ function SetupTab({ st, settings, saveS, load }) {
           <li>Give your channel link and the Google project number; mention the uploads use the <span className="mono">youtube.upload</span> scope only.</li>
           <li>Until it's approved, use privacy “Private” and publish from YouTube Studio, or keep Autopilot making clips for later.</li>
         </ol>
+        <p className="hint">Custom thumbnails also need a phone-verified channel: <a className="link-btn" onClick={() => open("https://www.youtube.com/verify")}>youtube.com/verify</a></p>
         <div className="field" style={{ marginTop: 12 }}>
           <label>Upload privacy</label>
           <div className="segmented">
@@ -388,6 +399,9 @@ function SetupTab({ st, settings, saveS, load }) {
           <div><label>Keep ready (days)</label><input className="input" type="number" min="1" max="7" value={settings.ap_buffer_days || 2} onChange={(e) => saveS({ ap_buffer_days: Number(e.target.value) })} /></div>
           <div><label>Max clips per video</label><input className="input" type="number" min="1" max="30" value={settings.ap_clips_per_video || 6} onChange={(e) => saveS({ ap_clips_per_video: Number(e.target.value) })} /></div>
         </div>
+        <label className="toggle" style={{ marginBottom: 12 }} onClick={() => saveS({ ap_thumbnails: !settings.ap_thumbnails })}>
+          <span className={"sw" + (settings.ap_thumbnails !== false ? " on" : "")}><span /></span> Make a thumbnail for every clip and set it on YouTube
+        </label>
         <label className="toggle" onClick={() => saveS({ ap_approval: !settings.ap_approval })}>
           <span className={"sw" + (settings.ap_approval ? " on" : "")}><span /></span> I approve every clip before it's uploaded
         </label>
