@@ -24,6 +24,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 import fake_youtube  # noqa: E402
 
+for _s in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:  # noqa: BLE001
+        pass
 VIDEO, FFPROBE, ENGINE = Path(sys.argv[1]).resolve(), sys.argv[2], sys.argv[3:]
 results = []
 

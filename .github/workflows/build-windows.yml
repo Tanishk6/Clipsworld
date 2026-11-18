@@ -104,6 +104,7 @@ jobs:
           $env:CLIPSWORLD_DATA = "$PWD/smoke-data"
           $env:CLIPSWORLD_NO_AUTOPILOT = "0"
           $env:AP_TEST_HF = "1"
+          $env:PYTHONIOENCODING = "utf-8"
           $env:PATH = "$PWD/resources/ffmpeg;$env:PATH"
           python tests/autopilot_test.py "$PWD/smoke video.mkv" resources/ffmpeg/ffprobe.exe dist-backend/clipsworld-backend/clipsworld-backend.exe
           $code = $LASTEXITCODE
