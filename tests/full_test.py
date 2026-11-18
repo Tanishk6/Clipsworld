@@ -84,8 +84,11 @@ def t_project():
     p = call("GET", f"/projects/{S['pid']}")
     assert p["status"] == "ready", p.get("error")
     assert p["transcript"] is not None
-    call("POST", f"/projects/{S['pid']}/analyze", {"from": "clips"})  # second one must be refused while running
-    call("POST", f"/projects/{S['pid']}/analyze", {"from": "clips"}, ok=(409,))
+    j1 = call("POST", f"/projects/{S['pid']}/analyze", {"from": "clips"})  # second one must be refused while running
+    j2 = call("POST", f"/projects/{S['pid']}/analyze", {"from": "clips"}, ok=(200, 409))
+    if isinstance(j2, dict) and j2.get("id"):  # only allowed if the first one had already finished
+        assert call("GET", f"/jobs/{j1['id']}")["status"] != "running", "two analyses ran at once"
+        j1 = j2
     time.sleep(1)
     for _ in range(300):
         if not any(j["status"] == "running" and j["project_id"] == S["pid"] for j in call("GET", "/jobs")):
