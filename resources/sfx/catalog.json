@@ -1,0 +1,2228 @@
+{
+"whoosh-fast-hard": {
+"name": "Whoosh, fast and hard",
+"category": "whooshes",
+"description": "A fast, crisp whip of air with a bright edge and a little push behind it.",
+"use_for": [
+"Whip pans",
+"Fast cuts between scenes",
+"Quick zooms",
+"Energetic social edits"
+],
+"duration": 0.252,
+"sync": 0.092
+},
+"whoosh-fast-medium": {
+"name": "Whoosh, fast and medium",
+"category": "whooshes",
+"description": "A quick, clean swish of air with a defined middle.",
+"use_for": [
+"Cards flicking in or out",
+"Carousel and tab swipes",
+"Menus and drawers opening",
+"Quick text slides"
+],
+"duration": 0.252,
+"sync": 0.096
+},
+"whoosh-fast-soft": {
+"name": "Whoosh, fast and soft",
+"category": "whooshes",
+"description": "A quick, gentle puff of air with a soft edge and no weight.",
+"use_for": [
+"Small icons or text sliding in",
+"A line of text changing",
+"Tooltips, chips and small UI panels moving",
+"List items arriving one after another (at a lower gain)"
+],
+"duration": 0.25,
+"sync": 0.099
+},
+"whoosh-medium-hard": {
+"name": "Whoosh, medium and hard",
+"category": "whooshes",
+"description": "A strong rush of air with a bright crack at its peak and weight behind it.",
+"use_for": [
+"Big transitions between sections",
+"Objects flying across the frame",
+"Bold title moves",
+"A product spinning into view"
+],
+"duration": 0.55,
+"sync": 0.201
+},
+"whoosh-medium-medium": {
+"name": "Whoosh, medium and medium",
+"category": "whooshes",
+"description": "A balanced swish of air: a clear rise, a defined peak and a smooth fade.",
+"use_for": [
+"Standard scene transitions",
+"Cards and screens sliding across",
+"A device moving into frame",
+"Titles moving into place"
+],
+"duration": 0.517,
+"sync": 0.209
+},
+"whoosh-medium-soft": {
+"name": "Whoosh, medium and soft",
+"category": "whooshes",
+"description": "A smooth, gentle sweep of air that rises and fades without an edge.",
+"use_for": [
+"Panels sliding in",
+"Gentle card reveals",
+"Backgrounds shifting",
+"Calm transitions between explainer scenes"
+],
+"duration": 0.543,
+"sync": 0.229
+},
+"whoosh-slow-hard": {
+"name": "Whoosh, slow and hard",
+"category": "whooshes",
+"description": "A big, slow rush of air: a deep swell, a bright peak and a long tail.",
+"use_for": [
+"Large, dramatic moves",
+"A big object passing slowly",
+"Section openers",
+"The move before a logo reveal"
+],
+"duration": 1.016,
+"sync": 0.403
+},
+"whoosh-slow-medium": {
+"name": "Whoosh, slow and medium",
+"category": "whooshes",
+"description": "A slow, full sweep of air with a gentle swell and a long, settled tail.",
+"use_for": [
+"Large panels or maps sliding",
+"Slow pans across a scene",
+"Deliberate reveals"
+],
+"duration": 1.002,
+"sync": 0.438
+},
+"whoosh-slow-soft": {
+"name": "Whoosh, slow and soft",
+"category": "whooshes",
+"description": "A long, soft breath of air drifting past.",
+"use_for": [
+"Slow camera drifts",
+"Large shapes moving gently",
+"Soft moves between calm scenes"
+],
+"duration": 1.049,
+"sync": 0.452
+},
+"swish-hard": {
+"name": "Swish, hard",
+"category": "swishes-and-zips",
+"description": "A fast, sharp swish: a thin rod cutting the air.",
+"use_for": [
+"Text, icons or arrows flicked into place",
+"Quick cuts, wipes and whip transitions",
+"A line or pointer sweeping across"
+],
+"duration": 0.175,
+"sync": 0.054
+},
+"swish-medium": {
+"name": "Swish, medium",
+"category": "swishes-and-zips",
+"description": "A quick, clean swish through the air, with a little whistle.",
+"use_for": [
+"Text, icons or arrows flicked into place",
+"Quick cuts, wipes and whip transitions",
+"A line or pointer sweeping across"
+],
+"duration": 0.201,
+"sync": 0.076
+},
+"swish-soft": {
+"name": "Swish, soft",
+"category": "swishes-and-zips",
+"description": "A soft, thin swish: something light flicked past.",
+"use_for": [
+"Text, icons or arrows flicked into place",
+"Quick cuts, wipes and whip transitions",
+"A line or pointer sweeping across"
+],
+"duration": 0.223,
+"sync": 0.085
+},
+"zip-in-hard": {
+"name": "Zip in, hard",
+"category": "swishes-and-zips",
+"description": "A fast, bright zip that lands with a snap.",
+"use_for": [
+"Icons, labels or badges zipping in and stopping",
+"A line drawing to its end",
+"Arrows reaching a target (add a light impact)"
+],
+"duration": 0.284,
+"sync": 0.188
+},
+"zip-in-medium": {
+"name": "Zip in, medium",
+"category": "swishes-and-zips",
+"description": "A quick zip in: rising to a stop.",
+"use_for": [
+"Icons, labels or badges zipping in and stopping",
+"A line drawing to its end",
+"Arrows reaching a target (add a light impact)"
+],
+"duration": 0.349,
+"sync": 0.233
+},
+"zip-in-soft": {
+"name": "Zip in, soft",
+"category": "swishes-and-zips",
+"description": "Something small zipping gently into place.",
+"use_for": [
+"Icons, labels or badges zipping in and stopping",
+"A line drawing to its end",
+"Arrows reaching a target (add a light impact)"
+],
+"duration": 0.414,
+"sync": 0.294
+},
+"zip-out-hard": {
+"name": "Zip out, hard",
+"category": "swishes-and-zips",
+"description": "A fast, bright zip launched away.",
+"use_for": [
+"Elements leaving the frame quickly",
+"Something sent flying: a message, a file",
+"Swiping an item away"
+],
+"duration": 0.199,
+"sync": 0.011
+},
+"zip-out-medium": {
+"name": "Zip out, medium",
+"category": "swishes-and-zips",
+"description": "A quick zip out: off it goes, falling away.",
+"use_for": [
+"Elements leaving the frame quickly",
+"Something sent flying: a message, a file",
+"Swiping an item away"
+],
+"duration": 0.256,
+"sync": 0.023
+},
+"zip-out-soft": {
+"name": "Zip out, soft",
+"category": "swishes-and-zips",
+"description": "Something zipping softly away.",
+"use_for": [
+"Elements leaving the frame quickly",
+"Something sent flying: a message, a file",
+"Swiping an item away"
+],
+"duration": 0.307,
+"sync": 0.032
+},
+"reverse-whoosh-long-soft": {
+"name": "Reverse whoosh, long and soft",
+"category": "reverse-whooshes",
+"description": "A long soft reverse whoosh: air drawn in, building to a sudden stop.",
+"use_for": [
+"Something collapsing or shrinking into a point",
+"The build into a hard cut, a hit or a reveal",
+"An element pulled back into a button or icon",
+"A slow pull before a big moment"
+],
+"duration": 1.353,
+"sync": 1.192
+},
+"reverse-whoosh-long-strong": {
+"name": "Reverse whoosh, long and strong",
+"category": "reverse-whooshes",
+"description": "A long strong, bright reverse whoosh: air drawn in, building to a sudden stop.",
+"use_for": [
+"Something collapsing or shrinking into a point",
+"The build into a hard cut, a hit or a reveal",
+"An element pulled back into a button or icon",
+"A slow pull before a big moment"
+],
+"duration": 1.358,
+"sync": 1.165
+},
+"reverse-whoosh-medium-soft": {
+"name": "Reverse whoosh, medium and soft",
+"category": "reverse-whooshes",
+"description": "A soft reverse whoosh: air drawn in, building to a sudden stop.",
+"use_for": [
+"Something collapsing or shrinking into a point",
+"The build into a hard cut, a hit or a reveal",
+"An element pulled back into a button or icon",
+"A quick suck-in transition"
+],
+"duration": 0.861,
+"sync": 0.679
+},
+"reverse-whoosh-medium-strong": {
+"name": "Reverse whoosh, medium and strong",
+"category": "reverse-whooshes",
+"description": "A strong, bright reverse whoosh: air drawn in, building to a sudden stop.",
+"use_for": [
+"Something collapsing or shrinking into a point",
+"The build into a hard cut, a hit or a reveal",
+"An element pulled back into a button or icon",
+"A quick suck-in transition"
+],
+"duration": 0.836,
+"sync": 0.682
+},
+"reverse-whoosh-short-soft": {
+"name": "Reverse whoosh, short and soft",
+"category": "reverse-whooshes",
+"description": "A short soft reverse whoosh: air drawn in, building to a sudden stop.",
+"use_for": [
+"Something collapsing or shrinking into a point",
+"The build into a hard cut, a hit or a reveal",
+"An element pulled back into a button or icon",
+"A quick suck-in transition"
+],
+"duration": 0.509,
+"sync": 0.336
+},
+"reverse-whoosh-short-strong": {
+"name": "Reverse whoosh, short and strong",
+"category": "reverse-whooshes",
+"description": "A short strong, bright reverse whoosh: air drawn in, building to a sudden stop.",
+"use_for": [
+"Something collapsing or shrinking into a point",
+"The build into a hard cut, a hit or a reveal",
+"An element pulled back into a button or icon",
+"A quick suck-in transition"
+],
+"duration": 0.499,
+"sync": 0.34
+},
+"faller-1s-soft": {
+"name": "Faller, 1 s, soft",
+"category": "risers-and-fallers",
+"description": "A 1-second soft, airy fall from its peak, descending and settling.",
+"use_for": [
+"Something leaving, dropping or powering down",
+"The release after a reveal",
+"Transitions out of a section"
+],
+"duration": 0.862,
+"sync": 0.01
+},
+"faller-1s-strong": {
+"name": "Faller, 1 s, strong",
+"category": "risers-and-fallers",
+"description": "A 1-second strong, bright fall from its peak, descending and settling.",
+"use_for": [
+"Something leaving, dropping or powering down",
+"The release after a reveal",
+"Transitions out of a section"
+],
+"duration": 0.88,
+"sync": 0.015
+},
+"faller-2s-soft": {
+"name": "Faller, 2 s, soft",
+"category": "risers-and-fallers",
+"description": "A 2-second soft, airy fall from its peak, descending and settling.",
+"use_for": [
+"Something leaving, dropping or powering down",
+"The release after a reveal",
+"Transitions out of a section"
+],
+"duration": 1.831,
+"sync": 0.011
+},
+"faller-2s-strong": {
+"name": "Faller, 2 s, strong",
+"category": "risers-and-fallers",
+"description": "A 2-second strong, bright fall from its peak, descending and settling.",
+"use_for": [
+"Something leaving, dropping or powering down",
+"The release after a reveal",
+"Transitions out of a section"
+],
+"duration": 1.882,
+"sync": 0.034
+},
+"faller-4s-soft": {
+"name": "Faller, 4 s, soft",
+"category": "risers-and-fallers",
+"description": "A 4-second soft, airy fall from its peak, descending and settling.",
+"use_for": [
+"Something leaving, dropping or powering down",
+"The release after a reveal",
+"Transitions out of a section"
+],
+"duration": 3.859,
+"sync": 0.07
+},
+"faller-4s-strong": {
+"name": "Faller, 4 s, strong",
+"category": "risers-and-fallers",
+"description": "A 4-second strong, bright fall from its peak, descending and settling.",
+"use_for": [
+"Something leaving, dropping or powering down",
+"The release after a reveal",
+"Transitions out of a section"
+],
+"duration": 3.87,
+"sync": 0.01
+},
+"riser-1s-soft": {
+"name": "Riser, 1 s, soft",
+"category": "risers-and-fallers",
+"description": "A 1-second soft, airy rise that builds to its peak at the end.",
+"use_for": [
+"Building up to a reveal: a logo, a product, a big number",
+"Leading into a new section",
+"A short lift before something appears"
+],
+"duration": 1.19,
+"sync": 0.982
+},
+"riser-1s-strong": {
+"name": "Riser, 1 s, strong",
+"category": "risers-and-fallers",
+"description": "A 1-second strong, bright rise that builds to its peak at the end.",
+"use_for": [
+"Building up to a reveal: a logo, a product, a big number",
+"Leading into a new section",
+"A short lift before something appears"
+],
+"duration": 1.216,
+"sync": 0.984
+},
+"riser-2s-soft": {
+"name": "Riser, 2 s, soft",
+"category": "risers-and-fallers",
+"description": "A 2-second soft, airy rise that builds to its peak at the end.",
+"use_for": [
+"Building up to a reveal: a logo, a product, a big number",
+"Leading into a new section",
+"A short lift before something appears"
+],
+"duration": 2.189,
+"sync": 1.994
+},
+"riser-2s-strong": {
+"name": "Riser, 2 s, strong",
+"category": "risers-and-fallers",
+"description": "A 2-second strong, bright rise that builds to its peak at the end.",
+"use_for": [
+"Building up to a reveal: a logo, a product, a big number",
+"Leading into a new section",
+"A short lift before something appears"
+],
+"duration": 2.195,
+"sync": 1.978
+},
+"riser-4s-soft": {
+"name": "Riser, 4 s, soft",
+"category": "risers-and-fallers",
+"description": "A 4-second soft, airy rise that builds to its peak at the end.",
+"use_for": [
+"Building up to a reveal: a logo, a product, a big number",
+"Leading into a new section",
+"A long build under a title sequence"
+],
+"duration": 4.184,
+"sync": 3.945
+},
+"riser-4s-strong": {
+"name": "Riser, 4 s, strong",
+"category": "risers-and-fallers",
+"description": "A 4-second strong, bright rise that builds to its peak at the end.",
+"use_for": [
+"Building up to a reveal: a logo, a product, a big number",
+"Leading into a new section",
+"A long build under a title sequence"
+],
+"duration": 4.191,
+"sync": 3.977
+},
+"move-bounce": {
+"name": "Ball bouncing",
+"category": "bounce-spin-zoom",
+"description": "A rubber ball bouncing to rest: bonk, bonk, bonk-bonk-bonk.",
+"use_for": [
+"Elements bouncing into place",
+"Playful, springy animation",
+"A ball, a dot or a character bouncing"
+],
+"duration": 0.926,
+"sync": 0.011
+},
+"move-spin": {
+"name": "Spin",
+"category": "bounce-spin-zoom",
+"description": "Something spinning fast, whirring up and winding down.",
+"use_for": [
+"A logo, icon or wheel spinning",
+"Loading and refreshing",
+"A coin or a globe turning"
+],
+"duration": 1.138,
+"sync": 0.007
+},
+"move-spring": {
+"name": "Spring boing",
+"category": "bounce-spin-zoom",
+"description": "A coiled spring flicked: a wobbling boing.",
+"use_for": [
+"Something springing up or popping out",
+"Playful, cartoon moments",
+"A jack-in-the-box reveal"
+],
+"duration": 0.899,
+"sync": 0.0
+},
+"move-zoom-in": {
+"name": "Zoom in",
+"category": "bounce-spin-zoom",
+"description": "Zooming in: air rushing nearer and rising to the moment it arrives.",
+"use_for": [
+"Zooming into a detail or a screen",
+"Pushing in on a scene",
+"Focusing on one thing"
+],
+"duration": 0.566,
+"sync": 0.489
+},
+"move-zoom-out": {
+"name": "Zoom out",
+"category": "bounce-spin-zoom",
+"description": "Zooming out: air falling away as it recedes.",
+"use_for": [
+"Zooming out to the bigger picture",
+"Pulling back from a scene",
+"Revealing the whole"
+],
+"duration": 0.547,
+"sync": 0.0
+},
+"impact-deep-firm": {
+"name": "Impact, deep, on a firm surface",
+"category": "impacts",
+"description": "A deep, booming knock: a big object landing on a wooden stage.",
+"use_for": [
+"Big, weighty landings with real bass",
+"A title or object slamming down",
+"Moments that need to be felt",
+"Natural, everyday landings"
+],
+"duration": 1.145,
+"sync": 0.01
+},
+"impact-deep-hard": {
+"name": "Impact, deep, on a hard surface",
+"category": "impacts",
+"description": "A deep, hard hit: a crisp crack over a heavy, rumbling low end.",
+"use_for": [
+"Big, weighty landings with real bass",
+"A title or object slamming down",
+"Moments that need to be felt",
+"Crisp, confident landings"
+],
+"duration": 1.205,
+"sync": 0.01
+},
+"impact-deep-soft": {
+"name": "Impact, deep, on a soft surface",
+"category": "impacts",
+"description": "A deep, bass-heavy thud: something big landing on something soft.",
+"use_for": [
+"Big, weighty landings with real bass",
+"A title or object slamming down",
+"Moments that need to be felt",
+"Gentle, friendly landings"
+],
+"duration": 1.276,
+"sync": 0.045
+},
+"impact-heavy-firm": {
+"name": "Impact, heavy, on a firm surface",
+"category": "impacts",
+"description": "A deep, weighty knock: a heavy object landing on a wooden floor.",
+"use_for": [
+"Big elements landing",
+"A product or device set down with weight",
+"Section openers and emphatic beats",
+"Natural, everyday landings"
+],
+"duration": 0.3,
+"sync": 0.011
+},
+"impact-heavy-hard": {
+"name": "Impact, heavy, on a hard surface",
+"category": "impacts",
+"description": "A big, solid hit: crisp on top and deep underneath.",
+"use_for": [
+"Big elements landing",
+"A product or device set down with weight",
+"Section openers and emphatic beats",
+"Crisp, confident landings"
+],
+"duration": 0.3,
+"sync": 0.01
+},
+"impact-heavy-soft": {
+"name": "Impact, heavy, on a soft surface",
+"category": "impacts",
+"description": "A heavy, muffled thump: weight landing on something soft.",
+"use_for": [
+"Big elements landing",
+"A product or device set down with weight",
+"Section openers and emphatic beats",
+"Gentle, friendly landings"
+],
+"duration": 0.32,
+"sync": 0.018
+},
+"impact-light-firm": {
+"name": "Impact, light, on a firm surface",
+"category": "impacts",
+"description": "A light wooden tap: a small object set down on a table.",
+"use_for": [
+"Small elements landing or snapping into place",
+"Icons dropping into a grid",
+"Labels and tags settling",
+"Natural, everyday landings"
+],
+"duration": 0.099,
+"sync": 0.011
+},
+"impact-light-hard": {
+"name": "Impact, light, on a hard surface",
+"category": "impacts",
+"description": "A light, crisp tick: a small, hard object landing on stone.",
+"use_for": [
+"Small elements landing or snapping into place",
+"Icons dropping into a grid",
+"Labels and tags settling",
+"Crisp, confident landings"
+],
+"duration": 0.087,
+"sync": 0.01
+},
+"impact-light-soft": {
+"name": "Impact, light, on a soft surface",
+"category": "impacts",
+"description": "A light, muffled landing: something small dropping onto a cushion.",
+"use_for": [
+"Small elements landing or snapping into place",
+"Icons dropping into a grid",
+"Labels and tags settling",
+"Gentle, friendly landings"
+],
+"duration": 0.166,
+"sync": 0.012
+},
+"impact-medium-firm": {
+"name": "Impact, medium, on a firm surface",
+"category": "impacts",
+"description": "A solid knock: a medium-sized object landing on wood.",
+"use_for": [
+"Cards and panels landing",
+"Objects dropping into frame",
+"A title setting into place",
+"Natural, everyday landings"
+],
+"duration": 0.175,
+"sync": 0.012
+},
+"impact-medium-hard": {
+"name": "Impact, medium, on a hard surface",
+"category": "impacts",
+"description": "A crisp, solid hit with a short, bright edge.",
+"use_for": [
+"Cards and panels landing",
+"Objects dropping into frame",
+"A title setting into place",
+"Crisp, confident landings"
+],
+"duration": 0.162,
+"sync": 0.01
+},
+"impact-medium-soft": {
+"name": "Impact, medium, on a soft surface",
+"category": "impacts",
+"description": "A soft, padded thud: something landing on fabric.",
+"use_for": [
+"Cards and panels landing",
+"Objects dropping into frame",
+"A title setting into place",
+"Gentle, friendly landings"
+],
+"duration": 0.21,
+"sync": 0.013
+},
+"cinematic-drum-big": {
+"name": "Cinematic drum hit, big",
+"category": "cinematic-hits",
+"description": "A giant drum struck hard: the crack of the stick and a big, deep boom.",
+"use_for": [
+"Title slams and trailer beats",
+"A logo or product landing with force",
+"Dramatic reveals",
+"Big moments: a title, a reveal, a turning point"
+],
+"duration": 2.178,
+"sync": 0.011
+},
+"cinematic-drum-massive": {
+"name": "Cinematic drum hit, massive",
+"category": "cinematic-hits",
+"description": "A colossal drum hit: a crack, then a huge boom sinking into a vast hall.",
+"use_for": [
+"Title slams and trailer beats",
+"A logo or product landing with force",
+"Dramatic reveals",
+"The biggest moments: a climax or a final reveal"
+],
+"duration": 3.335,
+"sync": 0.034
+},
+"cinematic-metal-big": {
+"name": "Cinematic metal hit, big",
+"category": "cinematic-hits",
+"description": "A big metal hit: a deep clang of steel ringing on.",
+"use_for": [
+"Industrial, engineering and tech reveals",
+"A heavy, hard statement",
+"Strength, machines and steel",
+"Big moments: a title, a reveal, a turning point"
+],
+"duration": 2.115,
+"sync": 0.03
+},
+"cinematic-metal-massive": {
+"name": "Cinematic metal hit, massive",
+"category": "cinematic-hits",
+"description": "A massive metal hit: a great steel beam struck, its clang ringing into a vast hall.",
+"use_for": [
+"Industrial, engineering and tech reveals",
+"A heavy, hard statement",
+"Strength, machines and steel",
+"The biggest moments: a climax or a final reveal"
+],
+"duration": 3.22,
+"sync": 0.015
+},
+"cinematic-slam-big": {
+"name": "Cinematic slam, big",
+"category": "cinematic-hits",
+"description": "A big slam: a heavy wooden door crashing shut in a hall.",
+"use_for": [
+"A door closing on a scene, or an ending",
+"Something final: done, locked, decided",
+"A hard cut to black",
+"Big moments: a title, a reveal, a turning point"
+],
+"duration": 2.225,
+"sync": 0.011
+},
+"cinematic-slam-massive": {
+"name": "Cinematic slam, massive",
+"category": "cinematic-hits",
+"description": "A massive slam: a huge door crashing shut, its frame rattling, the hall booming.",
+"use_for": [
+"A door closing on a scene, or an ending",
+"Something final: done, locked, decided",
+"A hard cut to black",
+"The biggest moments: a climax or a final reveal"
+],
+"duration": 3.143,
+"sync": 0.084
+},
+"cinematic-thunder-big": {
+"name": "Cinematic thunderclap, big",
+"category": "cinematic-hits",
+"description": "A thunderclap: a sharp crack and a rolling rumble.",
+"use_for": [
+"A shock or a big turn in the story",
+"A dramatic warning or reveal",
+"Power, scale and storms",
+"Big moments: a title, a reveal, a turning point"
+],
+"duration": 3.813,
+"sync": 0.011
+},
+"cinematic-thunder-massive": {
+"name": "Cinematic thunderclap, massive",
+"category": "cinematic-hits",
+"description": "A massive thunderclap overhead: a crack tearing into a long, deep roll.",
+"use_for": [
+"A shock or a big turn in the story",
+"A dramatic warning or reveal",
+"Power, scale and storms",
+"The biggest moments: a climax or a final reveal"
+],
+"duration": 4.939,
+"sync": 0.012
+},
+"bass-808-long": {
+"name": "808-style bass, long",
+"category": "booms-and-bass",
+"description": "A long 808-style bass that slides down to F at the end.",
+"use_for": [
+"A punchy accent on a beat or a cut",
+"Modern, energetic edits and social videos",
+"A title or a number hitting with bass"
+],
+"duration": 2.554,
+"sync": 0.011
+},
+"bass-808-medium": {
+"name": "808-style bass, medium",
+"category": "booms-and-bass",
+"description": "An 808-style bass that rings on: a tuned bass kick on C.",
+"use_for": [
+"A punchy accent on a beat or a cut",
+"Modern, energetic edits and social videos",
+"A title or a number hitting with bass"
+],
+"duration": 1.469,
+"sync": 0.011
+},
+"bass-808-short": {
+"name": "808-style bass, short",
+"category": "booms-and-bass",
+"description": "A short, punchy 808-style bass: a tuned bass kick on C.",
+"use_for": [
+"A punchy accent on a beat or a cut",
+"Modern, energetic edits and social videos",
+"A title or a number hitting with bass"
+],
+"duration": 0.683,
+"sync": 0.011
+},
+"bass-rumble-long": {
+"name": "Rumble, long",
+"category": "booms-and-bass",
+"description": "A long, deep rumble: a quake building and settling.",
+"use_for": [
+"Tension building under a scene",
+"Something huge approaching, or the ground shaking",
+"Under a dramatic reveal"
+],
+"duration": 4.679,
+"sync": 0.052
+},
+"bass-rumble-medium": {
+"name": "Rumble, medium",
+"category": "booms-and-bass",
+"description": "A low rumble of about three seconds: distant thunder, the ground shaking.",
+"use_for": [
+"Tension building under a scene",
+"Something huge approaching, or the ground shaking",
+"Under a dramatic reveal"
+],
+"duration": 2.805,
+"sync": 0.017
+},
+"bass-rumble-short": {
+"name": "Rumble, short",
+"category": "booms-and-bass",
+"description": "A quick low rumble, rolling in and away.",
+"use_for": [
+"Tension building under a scene",
+"Something huge approaching, or the ground shaking",
+"Under a dramatic reveal"
+],
+"duration": 1.528,
+"sync": 0.003
+},
+"bass-sub-drop-long": {
+"name": "Sub drop, long",
+"category": "booms-and-bass",
+"description": "A long sub drop of about four seconds, sinking slowly away.",
+"use_for": [
+"The moment after a build: a reveal, a logo or a big statement",
+"Scene changes and title cards with weight",
+"The bottom dropping out"
+],
+"duration": 3.909,
+"sync": 0.021
+},
+"bass-sub-drop-medium": {
+"name": "Sub drop, medium",
+"category": "booms-and-bass",
+"description": "A sub drop of about two seconds: deep and falling, felt more than heard.",
+"use_for": [
+"The moment after a build: a reveal, a logo or a big statement",
+"Scene changes and title cards with weight",
+"The bottom dropping out"
+],
+"duration": 2.154,
+"sync": 0.021
+},
+"bass-sub-drop-short": {
+"name": "Sub drop, short",
+"category": "booms-and-bass",
+"description": "A short sub drop: a deep tone dropping away, about a second.",
+"use_for": [
+"The moment after a build: a reveal, a logo or a big statement",
+"Scene changes and title cards with weight",
+"The bottom dropping out"
+],
+"duration": 1.175,
+"sync": 0.021
+},
+"boom-drop-medium": {
+"name": "Boom drop, medium",
+"category": "booms-and-bass",
+"description": "A deep drop: a boom sinking, with a low roll under it.",
+"use_for": [
+"The reveal after a build (a riser or reverse whoosh into it)",
+"A bold opening or a section opener",
+"A dramatic pause: the bottom dropping out"
+],
+"duration": 3.441,
+"sync": 0.052
+},
+"boom-drop-soft": {
+"name": "Boom drop, soft",
+"category": "booms-and-bass",
+"description": "A soft boom that sinks away.",
+"use_for": [
+"The reveal after a build (a riser or reverse whoosh into it)",
+"A bold opening or a section opener",
+"A dramatic pause: the bottom dropping out"
+],
+"duration": 2.905,
+"sync": 0.019
+},
+"boom-drop-strong": {
+"name": "Boom drop, strong",
+"category": "booms-and-bass",
+"description": "A huge, sinking drop with a rolling rumble: the biggest moment.",
+"use_for": [
+"The reveal after a build (a riser or reverse whoosh into it)",
+"A bold opening or a section opener",
+"A dramatic pause: the bottom dropping out"
+],
+"duration": 4.293,
+"sync": 0.095
+},
+"boom-hit-medium": {
+"name": "Boom hit, medium",
+"category": "booms-and-bass",
+"description": "A deep, rounded boom with a warm hall.",
+"use_for": [
+"A title card or logo landing with weight",
+"A big statement or a key number",
+"A scene change with impact"
+],
+"duration": 1.301,
+"sync": 0.038
+},
+"boom-hit-soft": {
+"name": "Boom hit, soft",
+"category": "booms-and-bass",
+"description": "A soft, deep boom: a big drum struck gently in a hall.",
+"use_for": [
+"A title card or logo landing with weight",
+"A big statement or a key number",
+"A scene change with impact"
+],
+"duration": 1.02,
+"sync": 0.031
+},
+"boom-hit-strong": {
+"name": "Boom hit, strong",
+"category": "booms-and-bass",
+"description": "A big, deep boom that fills the room.",
+"use_for": [
+"A title card or logo landing with weight",
+"A big statement or a key number",
+"A scene change with impact"
+],
+"duration": 1.693,
+"sync": 0.047
+},
+"pop-large-bubble": {
+"name": "Bubble pop, large",
+"category": "pops",
+"description": "A deep, round bubble bloop.",
+"use_for": [
+"Playful appear moments",
+"Chat bubbles and messages appearing",
+"Light, friendly reveals",
+"Big shapes and panels"
+],
+"duration": 0.208,
+"sync": 0.011
+},
+"pop-large-in": {
+"name": "Pop in, large",
+"category": "pops",
+"description": "A full, round pop with a little puff of air.",
+"use_for": [
+"Elements appearing or scaling up into view",
+"Icons, badges and stickers popping in",
+"Points on a chart appearing",
+"Big shapes and panels"
+],
+"duration": 0.112,
+"sync": 0.011
+},
+"pop-large-out": {
+"name": "Pop out, large",
+"category": "pops",
+"description": "A low, soft pop that sinks away.",
+"use_for": [
+"Elements disappearing or scaling down",
+"Closing or dismissing something",
+"Removing an item from a list",
+"Big shapes and panels"
+],
+"duration": 0.11,
+"sync": 0.012
+},
+"pop-medium-bubble": {
+"name": "Bubble pop, medium",
+"category": "pops",
+"description": "A clean bubble plip with a small one after it.",
+"use_for": [
+"Playful appear moments",
+"Chat bubbles and messages appearing",
+"Light, friendly reveals",
+"Cards, buttons and labels"
+],
+"duration": 0.126,
+"sync": 0.011
+},
+"pop-medium-in": {
+"name": "Pop in, medium",
+"category": "pops",
+"description": "A round, friendly pop that lifts into place.",
+"use_for": [
+"Elements appearing or scaling up into view",
+"Icons, badges and stickers popping in",
+"Points on a chart appearing",
+"Cards, buttons and labels"
+],
+"duration": 0.06,
+"sync": 0.011
+},
+"pop-medium-out": {
+"name": "Pop out, medium",
+"category": "pops",
+"description": "A soft pop that falls away as something disappears.",
+"use_for": [
+"Elements disappearing or scaling down",
+"Closing or dismissing something",
+"Removing an item from a list",
+"Cards, buttons and labels"
+],
+"duration": 0.069,
+"sync": 0.012
+},
+"pop-small-bubble": {
+"name": "Bubble pop, small",
+"category": "pops",
+"description": "A tiny water-bubble blip, light and quick.",
+"use_for": [
+"Playful appear moments",
+"Chat bubbles and messages appearing",
+"Light, friendly reveals",
+"Small elements: dots, icons, badges"
+],
+"duration": 0.081,
+"sync": 0.01
+},
+"pop-small-in": {
+"name": "Pop in, small",
+"category": "pops",
+"description": "A tiny, bright pop that lifts as it appears.",
+"use_for": [
+"Elements appearing or scaling up into view",
+"Icons, badges and stickers popping in",
+"Points on a chart appearing",
+"Small elements: dots, icons, badges"
+],
+"duration": 0.04,
+"sync": 0.01
+},
+"pop-small-out": {
+"name": "Pop out, small",
+"category": "pops",
+"description": "A tiny, soft pop that drops away.",
+"use_for": [
+"Elements disappearing or scaling down",
+"Closing or dismissing something",
+"Removing an item from a list",
+"Small elements: dots, icons, badges"
+],
+"duration": 0.051,
+"sync": 0.011
+},
+"appear-burst": {
+"name": "Burst",
+"category": "appear-and-vanish",
+"description": "Something bursting apart: a pop, a thump and pieces scattering.",
+"use_for": [
+"A bubble or shape bursting",
+"Breaking free, breaking through",
+"An explosion of ideas or confetti"
+],
+"duration": 1.005,
+"sync": 0.01
+},
+"appear-dissolve": {
+"name": "Dissolve",
+"category": "appear-and-vanish",
+"description": "Something dissolving into fine particles that drift away.",
+"use_for": [
+"An element dissolving or breaking into particles",
+"Problems or data fading away",
+"Soft exits"
+],
+"duration": 1.15,
+"sync": 0.0
+},
+"appear-flip-quick": {
+"name": "Flip, quick",
+"category": "appear-and-vanish",
+"description": "A card flipping over quickly, landing with a light tap.",
+"use_for": [
+"A card flipping to reveal its back",
+"Tiles turning over",
+"Quick reveals"
+],
+"duration": 0.178,
+"sync": 0.155
+},
+"appear-flip-slow": {
+"name": "Flip, slow",
+"category": "appear-and-vanish",
+"description": "A panel turning over slowly, landing softly.",
+"use_for": [
+"A big panel or page turning over",
+"Before and after reveals",
+"Considered reveals"
+],
+"duration": 0.437,
+"sync": 0.407
+},
+"appear-materialise": {
+"name": "Materialise",
+"category": "appear-and-vanish",
+"description": "Something materialising: particles gathering in and settling.",
+"use_for": [
+"An element appearing out of particles",
+"A product or idea taking shape",
+"Soft, magical entrances"
+],
+"duration": 1.209,
+"sync": 0.026
+},
+"appear-poof": {
+"name": "Poof",
+"category": "appear-and-vanish",
+"description": "A poof: something vanishing in a puff of smoke, a few glints as it clears.",
+"use_for": [
+"Something vanishing, magically",
+"An icon or problem disappearing",
+"A quick change of scene"
+],
+"duration": 0.62,
+"sync": 0.026
+},
+"transform-deflate": {
+"name": "Deflate",
+"category": "shape-changes",
+"description": "Air going out of a balloon, its note falling, the neck fluttering.",
+"use_for": [
+"A shape or balloon going flat",
+"Deflated hopes, a let-down",
+"Something losing air or value"
+],
+"duration": 0.891,
+"sync": 0.0
+},
+"transform-empty": {
+"name": "Empty",
+"category": "shape-changes",
+"description": "Water draining away with a gurgle.",
+"use_for": [
+"Something running out or draining",
+"Losing resources or time",
+"Emptying a container"
+],
+"duration": 0.952,
+"sync": 0.003
+},
+"transform-fill": {
+"name": "Fill",
+"category": "shape-changes",
+"description": "Water filling a glass, its note rising as it fills.",
+"use_for": [
+"A container or bar filling up",
+"Progress, capacity, a goal filling",
+"Pouring a drink"
+],
+"duration": 1.218,
+"sync": 0.003
+},
+"transform-grow": {
+"name": "Grow",
+"category": "shape-changes",
+"description": "Something growing: a swell of air rising, with a stretching creak.",
+"use_for": [
+"A shape, icon or chart growing",
+"Growth, progress, scaling up",
+"A plant or an idea growing"
+],
+"duration": 0.693,
+"sync": 0.003
+},
+"transform-inflate": {
+"name": "Inflate",
+"category": "shape-changes",
+"description": "A balloon inflating: air rushing in, its note rising.",
+"use_for": [
+"A shape or balloon growing",
+"Prices or numbers inflating",
+"Something pumping up"
+],
+"duration": 0.891,
+"sync": 0.001
+},
+"transform-morph": {
+"name": "Morph",
+"category": "shape-changes",
+"description": "A soft, liquid morph: a shape reshaping itself.",
+"use_for": [
+"A shape morphing into another",
+"Icons transforming",
+"Liquid, playful transitions"
+],
+"duration": 0.803,
+"sync": 0.002
+},
+"transform-shrink": {
+"name": "Shrink",
+"category": "shape-changes",
+"description": "Something shrinking: air falling away, tucking in at the end.",
+"use_for": [
+"A shape or icon shrinking away",
+"Reducing costs, size or effort",
+"Something tucking into a smaller space"
+],
+"duration": 0.604,
+"sync": 0.0
+},
+"transform-stretch": {
+"name": "Stretch",
+"category": "shape-changes",
+"description": "Rubber stretching, squeaking higher as it tightens.",
+"use_for": [
+"A shape stretching or pulling",
+"Elastic, bouncy animation",
+"Stretching a budget or a resource"
+],
+"duration": 0.599,
+"sync": 0.0
+},
+"notification-alert-clear": {
+"name": "Alert, clear",
+"category": "notifications",
+"description": "A bright double ding: an alert.",
+"use_for": [
+"A new alert or warning",
+"A badge or banner calling attention",
+"Reminders"
+],
+"duration": 0.657,
+"sync": 0.0
+},
+"notification-alert-soft": {
+"name": "Alert, soft",
+"category": "notifications",
+"description": "A warm double note: something needs a look.",
+"use_for": [
+"A new alert or warning",
+"A badge or banner calling attention",
+"Reminders"
+],
+"duration": 0.458,
+"sync": 0.0
+},
+"notification-attention-clear": {
+"name": "Attention, clear",
+"category": "notifications",
+"description": "A single ringing chime.",
+"use_for": [
+"Asking the viewer to look",
+"A gentle prompt or tip",
+"Knocking: someone's here, something new"
+],
+"duration": 0.548,
+"sync": 0.0
+},
+"notification-attention-soft": {
+"name": "Attention, soft",
+"category": "notifications",
+"description": "A knock-knock on wood.",
+"use_for": [
+"Asking the viewer to look",
+"A gentle prompt or tip",
+"Knocking: someone's here, something new"
+],
+"duration": 0.328,
+"sync": 0.0
+},
+"notification-error-clear": {
+"name": "Error, clear",
+"category": "notifications",
+"description": "A clear, falling two-note chime: an error, without alarm.",
+"use_for": [
+"A failed action or a wrong input",
+"A cross or warning icon",
+"Something that needs fixing"
+],
+"duration": 0.905,
+"sync": 0.0
+},
+"notification-error-soft": {
+"name": "Error, soft",
+"category": "notifications",
+"description": "A soft, falling two-note marimba: something's not right, gently.",
+"use_for": [
+"A failed action or a wrong input",
+"A cross or warning icon",
+"Something that needs fixing"
+],
+"duration": 0.567,
+"sync": 0.0
+},
+"notification-failure-deflate": {
+"name": "Failure, deflate",
+"category": "notifications",
+"description": "Air whistling down, like a balloon letting go: a playful fail.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.541,
+"sync": 0.002
+},
+"notification-failure-fall": {
+"name": "Failure, fall",
+"category": "notifications",
+"description": "Two bells falling a minor third: not quite.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 1.318,
+"sync": 0.0
+},
+"notification-failure-knock": {
+"name": "Failure, knock",
+"category": "notifications",
+"description": "Two wooden knocks, the second lower: nope.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.318,
+"sync": 0.0
+},
+"notification-failure-low": {
+"name": "Failure, low",
+"category": "notifications",
+"description": "A single low, soft note: a quiet no.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.703,
+"sync": 0.0
+},
+"notification-failure-minor": {
+"name": "Failure, minor",
+"category": "notifications",
+"description": "A soft marimba chord falling in a minor key: a gentle letdown.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.748,
+"sync": 0.0
+},
+"notification-failure-pluck": {
+"name": "Failure, pluck",
+"category": "notifications",
+"description": "A muted pluck falling a fourth: a dud.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.319,
+"sync": 0.0
+},
+"notification-failure-thud": {
+"name": "Failure, thud",
+"category": "notifications",
+"description": "A dull, low bonk: that didn't work.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.982,
+"sync": 0.0
+},
+"notification-failure-wobble": {
+"name": "Failure, wobble",
+"category": "notifications",
+"description": "A kalimba note bending down as it rings: womp.",
+"use_for": [
+"A wrong answer, a mistake or a failed attempt",
+"A cross, a warning or something that didn't work",
+"Before and after: the 'before' moment"
+],
+"duration": 0.535,
+"sync": 0.0
+},
+"notification-message-in-clear": {
+"name": "Message arriving, clear",
+"category": "notifications",
+"description": "A bubble and a bright ping: a message arrives.",
+"use_for": [
+"A message or email arriving",
+"A chat bubble appearing",
+"A new notification on a phone"
+],
+"duration": 0.607,
+"sync": 0.041
+},
+"notification-message-in-soft": {
+"name": "Message arriving, soft",
+"category": "notifications",
+"description": "A little bubble and a warm note: a new message.",
+"use_for": [
+"A message or email arriving",
+"A chat bubble appearing",
+"A new notification on a phone"
+],
+"duration": 0.423,
+"sync": 0.046
+},
+"notification-message-out-clear": {
+"name": "Message sent, clear",
+"category": "notifications",
+"description": "A quick airy send with a bright little ping.",
+"use_for": [
+"A message or email being sent",
+"Sharing or posting",
+"Something flying off to someone"
+],
+"duration": 0.568,
+"sync": 0.052
+},
+"notification-message-out-soft": {
+"name": "Message sent, soft",
+"category": "notifications",
+"description": "A soft puff of air with a small note: sent.",
+"use_for": [
+"A message or email being sent",
+"Sharing or posting",
+"Something flying off to someone"
+],
+"duration": 0.283,
+"sync": 0.061
+},
+"notification-success-bubble": {
+"name": "Success, bubble",
+"category": "notifications",
+"description": "A bubble and two bright notes: a playful success.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.636,
+"sync": 0.045
+},
+"notification-success-chime": {
+"name": "Success, chime",
+"category": "notifications",
+"description": "Two bells rising a fifth: a clear, bright success.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.963,
+"sync": 0.0
+},
+"notification-success-clear": {
+"name": "Success, clear",
+"category": "notifications",
+"description": "A bright, rising three-note chime: success.",
+"use_for": [
+"A task completed or a form submitted",
+"A tick or checkmark appearing",
+"Goals reached, positive results"
+],
+"duration": 0.606,
+"sync": 0.0
+},
+"notification-success-ding-ding": {
+"name": "Success, ding-ding",
+"category": "notifications",
+"description": "Two quick bell dings: correct!",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.987,
+"sync": 0.0
+},
+"notification-success-fanfare": {
+"name": "Success, fanfare",
+"category": "notifications",
+"description": "A little marimba ta-da: two quick chords, resolving.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.524,
+"sync": 0.0
+},
+"notification-success-flourish": {
+"name": "Success, flourish",
+"category": "notifications",
+"description": "A fast marimba run up to a high, ringing note: achieved.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.535,
+"sync": 0.0
+},
+"notification-success-pluck": {
+"name": "Success, pluck",
+"category": "notifications",
+"description": "A plucked string rising a fourth: a warm, simple yes.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 1.161,
+"sync": 0.0
+},
+"notification-success-soft": {
+"name": "Success, soft",
+"category": "notifications",
+"description": "A warm, rising three-note marimba arpeggio: done.",
+"use_for": [
+"A task completed or a form submitted",
+"A tick or checkmark appearing",
+"Goals reached, positive results"
+],
+"duration": 0.53,
+"sync": 0.0
+},
+"notification-success-sparkle": {
+"name": "Success, sparkle",
+"category": "notifications",
+"description": "A quick kalimba arpeggio up an octave, with a few glints: delight.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.632,
+"sync": 0.0
+},
+"notification-success-warm": {
+"name": "Success, warm",
+"category": "notifications",
+"description": "A soft, rolled marimba chord: quietly done.",
+"use_for": [
+"A task done, a goal reached, a right answer",
+"A tick, a badge or a reward appearing",
+"Positive results and progress"
+],
+"duration": 0.68,
+"sync": 0.0
+},
+"tone-ding-high": {
+"name": "Ding, high",
+"category": "tones",
+"description": "A small bell's clear ding (E, high).",
+"use_for": [
+"Highlighting a key point, a feature or a benefit",
+"A tick, an answer or a result appearing",
+"An idea: the lightbulb moment"
+],
+"duration": 0.812,
+"sync": 0.0
+},
+"tone-ding-low": {
+"name": "Ding, low",
+"category": "tones",
+"description": "A small bell's clear ding (G, low).",
+"use_for": [
+"Highlighting a key point, a feature or a benefit",
+"A tick, an answer or a result appearing",
+"An idea: the lightbulb moment"
+],
+"duration": 1.14,
+"sync": 0.0
+},
+"tone-ding-mid": {
+"name": "Ding, middle",
+"category": "tones",
+"description": "A small bell's clear ding (C, middle).",
+"use_for": [
+"Highlighting a key point, a feature or a benefit",
+"A tick, an answer or a result appearing",
+"An idea: the lightbulb moment"
+],
+"duration": 1.064,
+"sync": 0.0
+},
+"tone-step-1": {
+"name": "Step 1 of 5",
+"category": "tones",
+"description": "Step 1 of 5: a soft marimba note (C), each one higher.",
+"use_for": [
+"Words, lines or list items appearing one by one: step 1 for the first, 2 for the second…",
+"Bullet points and checklists building up",
+"Icons or cards appearing in a row"
+],
+"duration": 0.513,
+"sync": 0.0
+},
+"tone-step-2": {
+"name": "Step 2 of 5",
+"category": "tones",
+"description": "Step 2 of 5: a soft marimba note (E), each one higher.",
+"use_for": [
+"Words, lines or list items appearing one by one: step 1 for the first, 2 for the second…",
+"Bullet points and checklists building up",
+"Icons or cards appearing in a row"
+],
+"duration": 0.445,
+"sync": 0.0
+},
+"tone-step-3": {
+"name": "Step 3 of 5",
+"category": "tones",
+"description": "Step 3 of 5: a soft marimba note (G), each one higher.",
+"use_for": [
+"Words, lines or list items appearing one by one: step 1 for the first, 2 for the second…",
+"Bullet points and checklists building up",
+"Icons or cards appearing in a row"
+],
+"duration": 0.403,
+"sync": 0.0
+},
+"tone-step-4": {
+"name": "Step 4 of 5",
+"category": "tones",
+"description": "Step 4 of 5: a soft marimba note (A), each one higher.",
+"use_for": [
+"Words, lines or list items appearing one by one: step 1 for the first, 2 for the second…",
+"Bullet points and checklists building up",
+"Icons or cards appearing in a row"
+],
+"duration": 0.372,
+"sync": 0.0
+},
+"tone-step-5": {
+"name": "Step 5 of 5",
+"category": "tones",
+"description": "Step 5 of 5: a soft marimba note (C), each one higher.",
+"use_for": [
+"Words, lines or list items appearing one by one: step 1 for the first, 2 for the second…",
+"Bullet points and checklists building up",
+"Icons or cards appearing in a row"
+],
+"duration": 0.347,
+"sync": 0.0
+},
+"shimmer-long-bright": {
+"name": "Shimmer, long, bright",
+"category": "shimmers",
+"description": "A long shimmer: a bright cloud of glassy glints.",
+"use_for": [
+"Positive reveals: a result, a product, a logo",
+"Elements lighting up or being highlighted",
+"A slow, lingering reveal"
+],
+"duration": 2.072,
+"sync": 0.01
+},
+"shimmer-long-soft": {
+"name": "Shimmer, long, soft",
+"category": "shimmers",
+"description": "A long shimmer: a few soft, glassy glints that ring out gently.",
+"use_for": [
+"Gentle highlights: a feature, a benefit, a tick",
+"Elements lighting up or being highlighted",
+"A slow, lingering reveal"
+],
+"duration": 1.923,
+"sync": 0.01
+},
+"shimmer-long-sparkle": {
+"name": "Shimmer, long, sparkle",
+"category": "shimmers",
+"description": "A long shimmer: a dense, tinkling sparkle, high and light.",
+"use_for": [
+"Magic moments: something new, delightful or premium",
+"Elements lighting up or being highlighted",
+"A slow, lingering reveal"
+],
+"duration": 1.854,
+"sync": 0.01
+},
+"shimmer-medium-bright": {
+"name": "Shimmer, medium, bright",
+"category": "shimmers",
+"description": "A shimmer: a bright cloud of glassy glints.",
+"use_for": [
+"Positive reveals: a result, a product, a logo",
+"Elements lighting up or being highlighted",
+"A quick highlight"
+],
+"duration": 1.109,
+"sync": 0.011
+},
+"shimmer-medium-soft": {
+"name": "Shimmer, medium, soft",
+"category": "shimmers",
+"description": "A shimmer: a few soft, glassy glints that ring out gently.",
+"use_for": [
+"Gentle highlights: a feature, a benefit, a tick",
+"Elements lighting up or being highlighted",
+"A quick highlight"
+],
+"duration": 1.13,
+"sync": 0.011
+},
+"shimmer-medium-sparkle": {
+"name": "Shimmer, medium, sparkle",
+"category": "shimmers",
+"description": "A shimmer: a dense, tinkling sparkle, high and light.",
+"use_for": [
+"Magic moments: something new, delightful or premium",
+"Elements lighting up or being highlighted",
+"A quick highlight"
+],
+"duration": 1.105,
+"sync": 0.011
+},
+"shimmer-short-bright": {
+"name": "Shimmer, short, bright",
+"category": "shimmers",
+"description": "A short shimmer: a bright cloud of glassy glints.",
+"use_for": [
+"Positive reveals: a result, a product, a logo",
+"Elements lighting up or being highlighted",
+"A quick highlight"
+],
+"duration": 0.511,
+"sync": 0.013
+},
+"shimmer-short-soft": {
+"name": "Shimmer, short, soft",
+"category": "shimmers",
+"description": "A short shimmer: a few soft, glassy glints that ring out gently.",
+"use_for": [
+"Gentle highlights: a feature, a benefit, a tick",
+"Elements lighting up or being highlighted",
+"A quick highlight"
+],
+"duration": 0.478,
+"sync": 0.012
+},
+"shimmer-short-sparkle": {
+"name": "Shimmer, short, sparkle",
+"category": "shimmers",
+"description": "A short shimmer: a dense, tinkling sparkle, high and light.",
+"use_for": [
+"Magic moments: something new, delightful or premium",
+"Elements lighting up or being highlighted",
+"A quick highlight"
+],
+"duration": 0.53,
+"sync": 0.012
+},
+"celebration-applause-big": {
+"name": "Applause, a crowd",
+"category": "celebration",
+"description": "A crowd applauding in a hall.",
+"use_for": [
+"A big achievement or launch",
+"An award, an event, a stage",
+"Celebrating with customers or a community"
+],
+"duration": 4.577,
+"sync": 0.0
+},
+"celebration-applause-small": {
+"name": "Applause, a few people",
+"category": "celebration",
+"description": "A few people applauding warmly.",
+"use_for": [
+"Praise for a person or a team",
+"A small win or a milestone",
+"A presentation or a demo ending"
+],
+"duration": 2.938,
+"sync": 0.0
+},
+"celebration-confetti": {
+"name": "Confetti burst",
+"category": "celebration",
+"description": "A burst of confetti: a soft puff, then tiny paper flakes falling.",
+"use_for": [
+"Confetti falling on screen",
+"A success moment lingering",
+"Celebrations and parties"
+],
+"duration": 2.05,
+"sync": 0.166
+},
+"celebration-fireworks": {
+"name": "Firework",
+"category": "celebration",
+"description": "A firework: a rocket whistling up, a boom and a crackling shower.",
+"use_for": [
+"Big launches and grand openings",
+"New year, festivals and records",
+"A grand finale"
+],
+"duration": 3.334,
+"sync": 0.989
+},
+"celebration-popper": {
+"name": "Party popper",
+"category": "celebration",
+"description": "A party popper: a sharp pop and streamers rustling out.",
+"use_for": [
+"Congratulations, birthdays, anniversaries",
+"A celebration starting",
+"A new feature or milestone unveiled"
+],
+"duration": 0.953,
+"sync": 0.01
+},
+"time-alarm": {
+"name": "Alarm clock",
+"category": "time",
+"description": "An alarm clock ringing: a hammer rattling between two bells.",
+"use_for": [
+"Wake-up calls, reminders",
+"A problem demanding attention",
+"Starting the day"
+],
+"duration": 2.314,
+"sync": 0.0
+},
+"time-clock": {
+"name": "Clock ticking",
+"category": "time",
+"description": "A clock ticking: tick, tock, once a second.",
+"use_for": [
+"Time passing, waiting",
+"Saving time, deadlines, schedules",
+"Loop it under a scene"
+],
+"duration": 3.037,
+"sync": 0.0
+},
+"time-clock-fast": {
+"name": "Fast ticking",
+"category": "time",
+"description": "Fast, urgent ticking: twice a second.",
+"use_for": [
+"Time running out, urgency",
+"A deadline approaching",
+"Tension before a reveal"
+],
+"duration": 2.534,
+"sync": 0.0
+},
+"time-countdown": {
+"name": "3-2-1 countdown",
+"category": "time",
+"description": "A countdown: three beeps a second apart, then a higher beep on go.",
+"use_for": [
+"3, 2, 1, go: launches and starts",
+"Counting down to a reveal",
+"Races and challenges"
+],
+"duration": 3.604,
+"sync": 0.0
+},
+"time-stopwatch": {
+"name": "Stopwatch",
+"category": "time",
+"description": "A stopwatch: a click to start, fine ticking, a click to stop.",
+"use_for": [
+"Timing something: speed, records, races",
+"How long something takes",
+"Quick results"
+],
+"duration": 1.628,
+"sync": 0.0
+},
+"time-timer": {
+"name": "Timer done",
+"category": "time",
+"description": "A timer finishing: a click and a bright ting-ting.",
+"use_for": [
+"Time's up, done, ready",
+"Cooking and processes finishing",
+"A task complete"
+],
+"duration": 1.102,
+"sync": 0.139
+},
+"money-card-tap": {
+"name": "Card payment tap",
+"category": "money",
+"description": "A contactless card tapped on a reader, and its beep.",
+"use_for": [
+"Paying by card or phone",
+"Checkout and payments",
+"A transaction approved"
+],
+"duration": 0.274,
+"sync": 0.113
+},
+"money-coin-drop": {
+"name": "Coin drop",
+"category": "money",
+"description": "A coin dropped on a table: it rings, bounces and rattles flat.",
+"use_for": [
+"A saving or a small payment",
+"Tips, change, a coin of the realm",
+"One coin landing on a graph or pile"
+],
+"duration": 0.681,
+"sync": 0.01
+},
+"money-coin-spin": {
+"name": "Coin spinning",
+"category": "money",
+"description": "A coin spinning on a table, rattling faster until it lies still.",
+"use_for": [
+"A decision hanging: a coin toss",
+"Money in motion",
+"Waiting for a result"
+],
+"duration": 2.065,
+"sync": 1.672
+},
+"money-coin-stack": {
+"name": "Coins stacking",
+"category": "money",
+"description": "Coins set down on a stack, one by one: short, dry chinks.",
+"use_for": [
+"Savings growing step by step",
+"Counting coins, adding up",
+"A stack chart rising"
+],
+"duration": 0.865,
+"sync": 0.0
+},
+"money-coins-pour": {
+"name": "Coins pouring",
+"category": "money",
+"description": "A handful of coins poured onto a pile: a dense, short clatter.",
+"use_for": [
+"Savings, revenue or rewards piling up",
+"A jackpot or a big win",
+"Money flowing in"
+],
+"duration": 1.125,
+"sync": 0.0
+},
+"money-notes": {
+"name": "Counting notes",
+"category": "money",
+"description": "Banknotes being counted, flicked through one by one.",
+"use_for": [
+"Counting money, cash payments",
+"Wages, budgets and costs",
+"Saving up"
+],
+"duration": 0.808,
+"sync": 0.0
+},
+"money-register": {
+"name": "Cash register",
+"category": "money",
+"description": "A cash register: a key, the bell's ching and the drawer sliding open.",
+"use_for": [
+"A sale made, revenue in",
+"Ka-ching: profit, pricing and offers",
+"Shops and retail"
+],
+"duration": 0.912,
+"sync": 0.093
+},
+"digital-blip-clear": {
+"name": "Blip, clear",
+"category": "digital",
+"description": "A clean, bright blip.",
+"use_for": [
+"Small digital events: a data point, a selection",
+"A cursor or highlight moving between items",
+"Status changes"
+],
+"duration": 0.163,
+"sync": 0.011
+},
+"digital-blip-subtle": {
+"name": "Blip, subtle",
+"category": "digital",
+"description": "A soft, low digital blip.",
+"use_for": [
+"Small digital events: a data point, a selection",
+"A cursor or highlight moving between items",
+"Status changes"
+],
+"duration": 0.137,
+"sync": 0.011
+},
+"digital-breach": {
+"name": "Security breach",
+"category": "digital",
+"description": "A security breach: an urgent two-tone alarm, three times.",
+"use_for": [
+"A security breach or threat detected",
+"A system alert or alarm",
+"Something urgent going wrong"
+],
+"duration": 0.924,
+"sync": 0.0
+},
+"digital-corrupt": {
+"name": "Data corrupting",
+"category": "digital",
+"description": "Data corrupting: a slice of data stuttering, crushed and smeared.",
+"use_for": [
+"A data error or a corrupted file",
+"A screen or text breaking up",
+"Glitch transitions"
+],
+"duration": 0.649,
+"sync": 0.0
+},
+"digital-decrypt": {
+"name": "Decrypted",
+"category": "digital",
+"description": "Decrypted: a scramble slowing and resolving into a clean, rising chime.",
+"use_for": [
+"Decrypted, unlocked, access granted",
+"A password cracked or a code solved",
+"Data made safe"
+],
+"duration": 1.262,
+"sync": 0.659
+},
+"digital-denied": {
+"name": "Access denied",
+"category": "digital",
+"description": "Access denied: two short, low buzzes.",
+"use_for": [
+"Access denied, a wrong password, a blocked action",
+"A security block or firewall",
+"A rejected payment or login"
+],
+"duration": 0.35,
+"sync": 0.0
+},
+"digital-glitch-clear": {
+"name": "Glitch, clear",
+"category": "digital",
+"description": "A crisp little glitch, stepping in pitch.",
+"use_for": [
+"A digital error or interference",
+"A screen or text glitching",
+"Switching between digital states"
+],
+"duration": 0.24,
+"sync": 0.018
+},
+"digital-glitch-subtle": {
+"name": "Glitch, subtle",
+"category": "digital",
+"description": "A gentle, clean stutter.",
+"use_for": [
+"A digital error or interference",
+"A screen or text glitching",
+"Switching between digital states"
+],
+"duration": 0.164,
+"sync": 0.02
+},
+"digital-hacker": {
+"name": "Hacker chatter",
+"category": "digital",
+"description": "Hacker chatter: a terminal pouring out data in tiny ticks and blips.",
+"use_for": [
+"Hacking, code running, a terminal at work",
+"Data being extracted or analysed",
+"Cyber security scenes"
+],
+"duration": 1.569,
+"sync": 0.0
+},
+"digital-interference": {
+"name": "Interference",
+"category": "digital",
+"description": "Electrical interference: a buzz stuttering on and off with crackle.",
+"use_for": [
+"A signal being disrupted or hacked",
+"Faulty electronics or a power problem",
+"Tension in a tech scene"
+],
+"duration": 0.866,
+"sync": 0.0
+},
+"digital-power-down": {
+"name": "Power down",
+"category": "digital",
+"description": "A device powering down: a click, then its hum sinking away.",
+"use_for": [
+"A device or screen switching off",
+"Shutting down, ending a session",
+"Losing power, running out"
+],
+"duration": 0.882,
+"sync": 0.0
+},
+"digital-power-up": {
+"name": "Power up",
+"category": "digital",
+"description": "A device powering up: a click, its hum rising, a ping when it's ready.",
+"use_for": [
+"A device or screen switching on",
+"A system starting up, going live",
+"Energy, launch, getting going"
+],
+"duration": 1.131,
+"sync": 0.0
+},
+"digital-process-clear": {
+"name": "Process, clear",
+"category": "digital",
+"description": "Busy processing: a bright, steady run of pips.",
+"use_for": [
+"Something loading or computing",
+"Data being processed",
+"AI or automation at work"
+],
+"duration": 1.098,
+"sync": 0.071
+},
+"digital-process-subtle": {
+"name": "Process, subtle",
+"category": "digital",
+"description": "Quiet processing: a soft run of tiny pips.",
+"use_for": [
+"Something loading or computing",
+"Data being processed",
+"AI or automation at work"
+],
+"duration": 1.119,
+"sync": 0.093
+},
+"digital-radio": {
+"name": "Radio tuning",
+"category": "digital",
+"description": "A radio being tuned: static, whistles sweeping past, snatches of stations.",
+"use_for": [
+"Searching for a signal, scanning channels",
+"Retro or broadcast moments",
+"Something tuning in to the right answer"
+],
+"duration": 1.625,
+"sync": 0.0
+},
+"digital-scan-clear": {
+"name": "Scan, clear",
+"category": "digital",
+"description": "A clean scan: a defined tone gliding up, pulsing.",
+"use_for": [
+"Scanning a document, face or code",
+"A progress sweep or a search",
+"Analysing or reading data"
+],
+"duration": 0.837,
+"sync": 0.0
+},
+"digital-scan-subtle": {
+"name": "Scan, subtle",
+"category": "digital",
+"description": "A soft scan: a gentle tone gliding up with slow pulses.",
+"use_for": [
+"Scanning a document, face or code",
+"A progress sweep or a search",
+"Analysing or reading data"
+],
+"duration": 0.841,
+"sync": 0.0
+},
+"digital-scramble": {
+"name": "Scramble",
+"category": "digital",
+"description": "Scrambling: rapid random pips, like text decoding.",
+"use_for": [
+"Text or code decoding or scrambling",
+"Passwords and encryption",
+"Data being shuffled"
+],
+"duration": 0.955,
+"sync": 0.0
+},
+"digital-signal-drop": {
+"name": "Signal drop",
+"category": "digital",
+"description": "A signal failing: a tone stuttering, sagging and cutting out.",
+"use_for": [
+"A connection lost: a call, a stream, a network",
+"Something switching off or failing",
+"The moment before a cut to black"
+],
+"duration": 0.793,
+"sync": 0.0
+},
+"digital-static": {
+"name": "TV static",
+"category": "digital",
+"description": "A burst of TV static: bright snow with a faint buzz in it.",
+"use_for": [
+"A screen fuzzing or switching channel",
+"A glitchy transition between scenes",
+"Lost signal or old technology"
+],
+"duration": 0.646,
+"sync": 0.0
+}
+}

@@ -4,7 +4,9 @@ All effect times are stored relative to the clip start, on the *source* timeline
 and replays insert extra time, so this module builds the output timeline (segments) and maps
 source times to output times for captions, zooms, texts and sounds.
 """
+import json
 import uuid
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -14,12 +16,12 @@ from .paths import data_dir, resources_dir
 TYPES = ("zoom", "shake", "freeze", "replay", "text", "sfx")
 
 DEFAULTS = {
-    "zoom": {"dur": 0.9, "scale": 1.3, "ease": "snap", "fx": 0.5, "fy": 0.45, "sfx": "whoosh"},
-    "shake": {"dur": 0.6, "strength": 1.0, "sfx": "boom"},
-    "freeze": {"dur": 1.2, "text": "WAIT WHAT?!", "zoom": 1.12, "sfx": "record_scratch"},
-    "replay": {"dur": 2.5, "speed": 0.6, "label": "REPLAY", "sfx": "rewind"},
-    "text": {"dur": 1.4, "text": "BRUH", "position": "middle", "color": "#FFE600", "sfx": "pop"},
-    "sfx": {"dur": 0.0, "sfx": "boom", "volume": 0.85},
+    "zoom": {"dur": 0.9, "scale": 1.3, "ease": "snap", "fx": 0.5, "fy": 0.45, "sfx": "whoosh-fast-medium"},
+    "shake": {"dur": 0.6, "strength": 1.0, "sfx": "boom-hit-strong"},
+    "freeze": {"dur": 1.2, "text": "WAIT WHAT?!", "zoom": 1.12, "sfx": "reverse-whoosh-short-strong"},
+    "replay": {"dur": 2.5, "speed": 0.6, "label": "REPLAY", "sfx": "reverse-whoosh-medium-strong"},
+    "text": {"dur": 1.4, "text": "BRUH", "position": "middle", "color": "#FFE600", "sfx": "pop-large-in"},
+    "sfx": {"dur": 0.0, "sfx": "boom-hit-medium", "volume": 0.85},
 }
 
 TEXT_IDEAS = {
@@ -43,15 +45,37 @@ def sfx_dirs():
     return [("builtin", resources_dir() / "sfx"), ("user", user)]
 
 
+# old (v1.0-1.6) sound names → the new CC0 library
+ALIASES = {"boom": "boom-hit-strong", "bass_drop": "bass-sub-drop-medium", "whoosh": "whoosh-fast-medium",
+           "swoosh_up": "zip-in-medium", "pop": "pop-medium-in", "ding": "tone-ding-mid",
+           "tada": "notification-success-fanfare", "camera_click": "appear-flip-quick",
+           "glitch": "digital-glitch-clear", "record_scratch": "reverse-whoosh-short-strong",
+           "rewind": "reverse-whoosh-medium-strong", "drumroll": "riser-2s-strong", "heartbeat": "bass-808-short",
+           "sparkle": "shimmer-short-sparkle", "airhorn": "celebration-popper", "error_buzz": "notification-error-clear"}
+
+
+@lru_cache(maxsize=1)
+def catalog() -> dict:
+    f = resources_dir() / "sfx" / "catalog.json"
+    try:
+        return json.loads(f.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def sfx_list() -> list:
     out = []
+    cat = catalog()
     for src, d in sfx_dirs():
         if not d.exists():
             continue
         for f in sorted(d.iterdir()):
             if f.suffix.lower() in (".wav", ".mp3", ".ogg", ".m4a", ".flac"):
+                c = cat.get(f.stem, {}) if src == "builtin" else {}
                 out.append({"id": f.stem if src == "builtin" else f"user:{f.name}",
-                            "name": f.stem.replace("_", " ").title(), "source": src})
+                            "name": c.get("name") or f.stem.replace("_", " ").replace("-", " ").title(),
+                            "category": c.get("category", "mine" if src == "user" else "other"),
+                            "description": c.get("description", ""), "source": src})
     return out
 
 
@@ -61,11 +85,30 @@ def sfx_path(sfx_id: str) -> Path | None:
     if sfx_id.startswith("user:"):
         p = data_dir() / "sfx" / Path(sfx_id[5:]).name
         return p if p.exists() else None
-    for ext in (".wav", ".mp3", ".ogg"):
-        p = resources_dir() / "sfx" / (Path(sfx_id).name + ext)
+    name = ALIASES.get(sfx_id, sfx_id)
+    for ext in (".ogg", ".wav", ".mp3"):
+        p = resources_dir() / "sfx" / (Path(name).name + ext)
         if p.exists():
             return p
     return None
+
+
+def sfx_sync(sfx_id: str) -> float:
+    """Seconds into the file where the hit/peak is: start the sound this much early so it lands on time."""
+    return float(catalog().get(ALIASES.get(sfx_id, sfx_id), {}).get("sync", 0.0))
+
+
+def sfx_menu() -> str:
+    """Compact list for Claude, grouped by category: one short line per sound."""
+    groups = {}
+    for sid, c in catalog().items():
+        desc = c.get("description", "").split(".")[0][:48]
+        groups.setdefault(c.get("category", "other"), []).append(f"{sid} ({c.get('duration', 0):.1f}s, {desc})")
+    lines = [f"[{g}] " + " | ".join(v) for g, v in groups.items()]
+    mine = [s["id"] for s in sfx_list() if s["source"] == "user"]
+    if mine:
+        lines.append("[creator's own sounds - prefer these when they fit] " + " | ".join(mine))
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------- timeline
@@ -274,6 +317,7 @@ def sound_events(segs, effects, master: float = 1.0) -> list:
         else:
             t0 = map_time(segs, e["t"])
         vol = float(e.get("volume", 0.85) if e.get("volume") is not None else 0.85) * max(0.0, float(master))
+        t0 -= sfx_sync(e.get("sfx", ""))  # land the hit on the moment, not the file start
         if vol > 0.001:
             out.append({"path": str(p), "t": max(0.0, t0), "volume": vol})
     return out
@@ -302,10 +346,10 @@ def auto_edit_local(clip: dict, loud: list, hop: float, segments: list, max_len:
                 peaks.append((t, float(sm[idx])))
     for k, (t, strength) in enumerate(sorted(peaks, key=lambda x: -x[1])):
         if k == 0:
-            effects.append(new_effect("zoom", t - 0.15, scale=1.35, dur=1.0, sfx="boom"))
+            effects.append(new_effect("zoom", t - 0.15, scale=1.35, dur=1.0, sfx="boom-hit-strong"))
             effects.append(new_effect("shake", t - 0.05, dur=0.5, sfx=""))
         else:
-            effects.append(new_effect("zoom", t - 0.1, scale=1.22, dur=0.8, ease="smooth", sfx="whoosh"))
+            effects.append(new_effect("zoom", t - 0.1, scale=1.22, dur=0.8, ease="smooth", sfx="whoosh-fast-soft"))
     # reaction words → text pop
     best_kind, best_t = None, None
     for s in segments:
@@ -321,7 +365,7 @@ def auto_edit_local(clip: dict, loud: list, hop: float, segments: list, max_len:
         while any(abs(best_t - e["t"]) < 0.7 for e in effects):
             best_t += 0.8
     if best_kind and 0.3 < best_t < L - 0.5:
-        effects.append(new_effect("text", best_t, text=TEXT_IDEAS.get(best_kind, "BRUH"), sfx="pop"))
+        effects.append(new_effect("text", best_t, text=TEXT_IDEAS.get(best_kind, "BRUH"), sfx="pop-large-in"))
     # replay the biggest moment if there is room
     if peaks:
         t, _ = max(peaks, key=lambda x: x[1])

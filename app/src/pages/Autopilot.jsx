@@ -186,8 +186,14 @@ function ReviewCard({ it, slot, act }) {
           </span>
           {it.duration && <span className="chip">{it.duration}s</span>}
           <span className="chip">Captions: {it.style}</span>
-          {it.engine_note && <span className="chip warn" title={it.engine_note}><AlertTriangle size={11} /> Motion graphics skipped</span>}
         </div>
+        {it.engine_note && (
+          <div className="ap-skip">
+            <AlertTriangle size={14} />
+            <span><b>Motion graphics skipped:</b> {it.engine_note}</span>
+            <button className="btn sm" onClick={() => act(() => api.apRetry(it.id), "Remaking this clip with motion graphics…")}><RotateCcw size={13} /> Remake</button>
+          </div>
+        )}
         <label>Title <span className="muted">{title.length}/100</span></label>
         <input className="input" value={title} maxLength={100} onChange={(e) => setTitle(e.target.value)} />
         <label>Description</label>
@@ -203,6 +209,7 @@ function ReviewCard({ it, slot, act }) {
           <span className="muted tiny"><CalendarClock size={13} /> Posts {when(slot)}</span>
           <div className="row gap">
             {dirty && <button className="btn sm" onClick={() => act(() => api.apEdit(it.id, patch), "Saved")}>Save</button>}
+            {!it.engine_note && <button className="btn ghost sm" title="Edit this clip again from scratch" onClick={() => act(() => api.apRetry(it.id), "Remaking…")}><RotateCcw size={14} /> Remake</button>}
             <button className="btn ghost sm" onClick={() => act(() => api.apReject(it.id), "Rejected")}><X size={14} /> Reject</button>
             <button className="btn primary sm" onClick={() => act(() => api.apApprove(it.id, patch), "Approved — it will be uploaded and scheduled")}>
               <Check size={14} /> Approve

@@ -148,44 +148,6 @@ def _env() -> dict:
 
 # ------------------------------------------------------------------ composition
 
-SYSTEM = """You are the motion designer of a top Indian YouTube Shorts channel. You add motion graphics
-to a clip with HyperFrames (HTML + CSS + GSAP rendered to video). The base video and the captions
-already exist; you add everything that makes it feel professionally edited.
-
-Contract (follow exactly, or the render breaks):
-- Canvas {w}x{h}px, duration {d:.2f}s. The base video is <video id="base"> filling the frame; never add
-  another video and never change its src. You MAY animate #base (scale / x / y / rotation) for punch-in
-  zooms and shakes, always returning to scale 1, x 0, y 0.
-- Every element you add must be inside the root and have class="clip", data-start (seconds) and
-  data-duration (seconds), and position:absolute styling. z-index: overlays 20-40 (captions use 30).
-- Animate ONLY with the provided paused GSAP timeline `tl` using absolute times:
-  tl.to(selector, {{...}}, time) / tl.from / tl.fromTo / tl.set. No other timelines, no setTimeout,
-  no Math.random, no Date, no network, no external images or fonts.
-- Fonts you can use (font-family names): {fonts}.
-- Keep text inside the safe area: x 60..{safe_r}px, y 160..{safe_b}px (YouTube buttons cover the right
-  edge and the bottom). Captions sit around y {cap_y}px - don't cover them.
-
-What to make:
-1. Hook title in the first ~2.5 s (use the given hook text, big, bold, animated in and out).
-2. 3-6 punch-in zooms or shakes on #base at the loudest / funniest moments (fast in ~0.12s, hold, ease back).
-3. 2-5 text or emoji pops at punchlines (short Hinglish/English meme words, emojis are fine), with a
-   playful entrance and exit.
-4. Optional accents: a thin animated progress bar at the very top, highlight shapes, arrows.
-5. Sound effects that land exactly on your pops and zooms (pick ids from: {sfx}).
-Vary the look - don't make every clip identical. Stay tasteful: the clip must stay watchable.
-
-Return with the answer tool:
-- css: CSS rules for your elements (ids/classes you created)
-- html: your overlay elements only (no <html>/<body>/<script>)
-- js: JavaScript statements that use `tl`
-- sounds: list of {{sfx, t, volume}}"""
-
-SCHEMA = {"type": "object", "required": ["css", "html", "js"], "properties": {
-    "css": {"type": "string"}, "html": {"type": "string"}, "js": {"type": "string"},
-    "sounds": {"type": "array", "items": {"type": "object", "required": ["sfx", "t"], "properties": {
-        "sfx": {"type": "string"}, "t": {"type": "number"}, "volume": {"type": "number"}}}}}}
-
-
 def _font_faces(work: Path) -> tuple:
     css, names = [], []
     for family, file in captions.FONT_FILES.items():
@@ -235,11 +197,11 @@ def caption_layer(cues: list, clip_start: float, dur: float, style: dict, w: int
     return css, "\n".join(html_parts), "\n".join(js), cap_y
 
 
-def build_index(work: Path, w: int, h: int, dur: float, fonts_css: str, cap: tuple, design: dict, sounds: list) -> str:
+def build_index(work: Path, w: int, h: int, dur: float, fonts_css: str, cap: tuple, comp: dict, sounds: list) -> str:
     cap_css, cap_html, cap_js, _ = cap
     audio = "\n".join(
         f'<audio id="s{i}" class="clip" src="sfx/{Path(s["path"]).name}" data-start="{s["t"]:.3f}" '
-        f'data-duration="{s["dur"]:.3f}" data-volume="{s["volume"]:.2f}" data-track-index="6"></audio>'
+        f'data-duration="{s["dur"]:.3f}" data-volume="{s["volume"]:.2f}" data-track-index="{6 + i % 4}"></audio>'
         for i, s in enumerate(sounds))
     return f"""<!doctype html>
 <html lang="hi" data-resolution="{'portrait' if h > w else 'landscape' if w > h else 'square'}">
@@ -253,24 +215,22 @@ def build_index(work: Path, w: int, h: int, dur: float, fonts_css: str, cap: tup
 html, body {{ width:{w}px; height:{h}px; overflow:hidden; background:#000; }}
 #base {{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform-origin:50% 45%; z-index:1; }}
 {cap_css}
-/* motion design */
-{design.get("css", "")}
+/* motion graphics */
+{comp.get("css", "")}
 </style>
 </head>
 <body>
 <div id="root" data-composition-id="main" data-start="0" data-duration="{dur:.3f}" data-width="{w}" data-height="{h}">
 <video id="base" class="clip" src="base.mp4" playsinline data-start="0" data-duration="{dur:.3f}" data-track-index="0" data-has-audio="true"></video>
 {cap_html}
-{design.get("html", "")}
+{comp.get("html", "")}
 {audio}
 </div>
 <script>
 window.__timelines = window.__timelines || {{}};
 const tl = gsap.timeline({{ paused: true }});
 {cap_js}
-try {{
-{design.get("js", "")}
-}} catch (e) {{ console.error("design error", e); }}
+{comp.get("js", "")}
 window.__timelines["main"] = tl;
 </script>
 </body>
@@ -299,10 +259,10 @@ def edit_clip(job, project: dict, clip: dict, settings: dict, out_path: Path, pr
     """Render one clip with HyperFrames. Raises on failure (the caller falls back to the normal editor)."""
     from . import render  # local import: render imports effects
     if not ready():
-        raise RuntimeError("The motion graphics pack is not installed yet.")
+        raise RuntimeError("The motion graphics pack isn't installed (Autopilot → Setup → Editing).")
     test_design = os.environ.get("CLIPSWORLD_HF_TEST_DESIGN")  # automated tests only: skip Claude
     if not settings.get("claude_api_key") and not test_design:
-        raise RuntimeError("HyperFrames editing needs your Claude API key.")
+        raise RuntimeError("Motion graphics need your Claude API key (Settings).")
     a, b = progress_range
     span = b - a
     fmt = (clip.get("layout") or {}).get("format", "short")
@@ -328,60 +288,59 @@ def edit_clip(job, project: dict, clip: dict, settings: dict, out_path: Path, pr
         cues = (clip["captions"].get("cues") or []) if clip["captions"].get("enabled", True) else []
         cap = caption_layer(cues, start, dur, st, w, h, upper)
 
-        # 3) Claude designs the motion graphics
-        job.update(progress=a + span * 0.3, stage="HyperFrames: Claude is designing the motion graphics…")
+        # 3) Claude plans the motion graphics from the component library, looking at real frames
+        job.update(progress=a + span * 0.3, stage="HyperFrames: Claude is planning the edit…")
+        from . import motion, thumbnails
         from .highlights import excitement
         loud = project.get("loudness") or []
         z = excitement(loud)
         i0, i1 = int(start / 0.25), int(end / 0.25)
-        peaks = sorted(range(max(0, i0), min(len(z), i1)), key=lambda i: -z[i])[:6] if len(z) else []
-        peak_txt = ", ".join(f"{i * 0.25 - start:.1f}s" for i in sorted(peaks)) or "none"
+        peaks = []
+        for i in sorted(range(max(0, i0), min(len(z), i1)), key=lambda i: -z[i]):
+            tt = i * 0.25 - start
+            if all(abs(tt - p) > 1.2 for p in peaks):
+                peaks.append(tt)
+            if len(peaks) >= 6:
+                break
+        peak_txt = ", ".join(f"{p:.1f}s" for p in sorted(peaks)) or "none"
         lines = [f"[{max(0, q['start'] - start):.1f}-{min(dur, q['end'] - start):.1f}] {q['text']}" for q in cues]
-        sfx_ids = [s["id"] for s in fx.sfx_list() if s["source"] == "builtin"]
-        system = SYSTEM.format(w=w, h=h, d=dur, fonts=", ".join(font_names), safe_r=int(w * 0.84),
-                               safe_b=int(h * 0.80), cap_y=cap[3], sfx=", ".join(sfx_ids))
-        user = (f"Clip title: {clip.get('title', '')}\nHook text: {clip.get('hook') or clip.get('title', '')}\n"
+        frame_ts = sorted({round(min(dur - 0.1, max(0.0, x)), 1) for x in [0.4] + sorted(peaks)[:3]})
+        images = []
+        for ft in frame_ts:
+            try:
+                images.append(thumbnails._jpeg(thumbnails._frame(str(work / "base.mp4"), ft, 360), 360))
+            except Exception:  # noqa: BLE001
+                pass
+        system = motion.SYSTEM.format(w=w, h=h, d=dur, cap_pct=int(cap[3] / h * 100), sfx=fx.sfx_menu())
+        user = (f"Clip title: {clip.get('title', '')}\nHook idea: {clip.get('hook') or clip.get('title', '')}\n"
                 f"Category: {clip.get('category', '')}\nLoudest moments (seconds): {peak_txt}\n"
+                f"Frames shown: images 0-{len(images) - 1} at {', '.join(f'{x:.1f}s' for x in frame_ts[:len(images)])}\n"
                 f"Captions (seconds):\n" + "\n".join(lines))
         model = settings.get("ap_hf_model") or "claude-sonnet-5-5"
         if test_design:
-            design = json.loads(Path(test_design).read_text(encoding="utf-8"))
+            plan = json.loads(Path(test_design).read_text(encoding="utf-8"))
         else:
-            design = ai._ask_json(settings["claude_api_key"], model, system, user, SCHEMA, "hyperframes", max_tokens=12000)
+            plan = ai._ask_json(settings["claude_api_key"], model, system, user, motion.SCHEMA, "motion",
+                                max_tokens=4000, images=images or None)
+        plan = motion.normalize(plan, dur)
+        comp = motion.render(plan, w, h, dur, float((clip.get("audio") or {}).get("sfx_volume", 1.0)))
 
         # 4) sounds
-        sounds = []
         (work / "sfx").mkdir()
-        for s in ai._as_list(design.get("sounds")):
-            if not isinstance(s, dict):
-                continue
-            p = fx.sfx_path(str(s.get("sfx", "")))
-            try:
-                t = float(s.get("t", 0))
-            except (TypeError, ValueError):
-                continue
-            if not p or not (0 <= t < dur):
-                continue
-            shutil.copy(p, work / "sfx" / p.name)
-            vol = float(s.get("volume") or 0.8) * float((clip.get("audio") or {}).get("sfx_volume", 1.0))
-            sounds.append({"path": str(p), "t": t, "dur": min(3.0, dur - t), "volume": max(0.0, min(2.0, vol))})
+        sounds = comp["sounds"]
+        for snd in sounds:
+            shutil.copy(snd["path"], work / "sfx" / Path(snd["path"]).name)
 
-        index = build_index(work, w, h, dur, fonts_css, cap, design, sounds)
+        index = build_index(work, w, h, dur, fonts_css, cap, comp, sounds)
         (work / "index.html").write_text(index, encoding="utf-8")
         (work / "hyperframes.json").write_text('{"name":"clipsworld-clip"}', encoding="utf-8")
+        (work / "plan.json").write_text(json.dumps(plan, ensure_ascii=False, indent=1), encoding="utf-8")
 
-        # 5) lint; let Claude fix errors once
+        # 5) lint (the components are pre-built, so an error here is a bug: fall back to the normal editor)
         code, out = _run_hf(["lint", ".", "--json"], work, timeout=180)
         errs = _lint_errors(out)
-        if errs and test_design:
-            raise RuntimeError("HyperFrames lint: " + "; ".join(errs[:5]))
         if errs:
-            job.update(stage="HyperFrames: fixing the design…")
-            fix_user = user + "\n\nYour previous answer had these HyperFrames errors, fix them:\n" + "\n".join(errs[:15]) + \
-                "\n\nPrevious answer:\n" + json.dumps({k: design.get(k) for k in ("css", "html", "js")}, ensure_ascii=False)[:20000]
-            design = ai._ask_json(settings["claude_api_key"], model, system, fix_user, SCHEMA, "hyperframes_fix", max_tokens=12000)
-            index = build_index(work, w, h, dur, fonts_css, cap, design, sounds)
-            (work / "index.html").write_text(index, encoding="utf-8")
+            raise RuntimeError("HyperFrames lint: " + "; ".join(errs[:5]))
 
         # 6) render
         job.update(progress=a + span * 0.45, stage="HyperFrames: rendering…")
@@ -397,7 +356,7 @@ def edit_clip(job, project: dict, clip: dict, settings: dict, out_path: Path, pr
             raise RuntimeError("HyperFrames render failed: " + out[-600:])
         job.update(progress=b)
         return {"path": str(out_path), "duration": round(dur, 2), "engine": "hyperframes",
-                "sounds": len(sounds)}
+                "sounds": len(sounds), "plan": plan}
     finally:
         if os.environ.get("CLIPSWORLD_KEEP_HF") != "1":
             shutil.rmtree(work, ignore_errors=True)

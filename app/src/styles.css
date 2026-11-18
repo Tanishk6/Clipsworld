@@ -555,3 +555,7 @@ input[type="range"] { width: 100%; accent-color: #c06bff; }
 .tc { width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(0,0,0,.6); box-shadow: 0 0 0 1px var(--line2); padding: 0; }
 .tc.on { box-shadow: 0 0 0 2px #fff; }
 .okc { color: var(--ok); }
+.ap-skip { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255,210,63,.08); border: 1px solid rgba(255,210,63,.35); color: #ffe9a3; font-size: 12.5px; }
+.ap-skip span { flex: 1; min-width: 0; }
+.sfx-cats { flex-wrap: wrap; margin-bottom: 8px; }
+.sfx-cats button { flex: none; }

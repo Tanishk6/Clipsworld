@@ -14,7 +14,7 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -478,7 +478,9 @@ def ap_reject(iid: str):
 @app.post("/autopilot/items/{iid}/retry")
 def ap_retry(iid: str):
     from clipsworld import autopilot
-    return _ap_call(autopilot.retry_item, iid)
+    r = _ap_call(autopilot.retry_item, iid)
+    autopilot.run_now()
+    return r
 
 
 @app.delete("/autopilot/items/{iid}")

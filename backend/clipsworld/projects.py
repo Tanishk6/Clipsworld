@@ -525,7 +525,7 @@ def auto_edit(job, pid, cid):
         job.update(progress=0.2, stage="Claude is planning the edit…")
         peaks = sorted({round(e["t"], 1) for e in local if e["type"] in ("zoom", "shake")})
         try:
-            raw = ai.auto_edit(segs, c, peaks, s, [x["id"] for x in fx.sfx_list() if x["source"] == "builtin"])
+            raw = ai.auto_edit(segs, c, peaks, s, fx.sfx_menu())
             got = [x for x in (_clean_effect(e, L) for e in raw) if x]
             if got:
                 effects, note = got, "claude"

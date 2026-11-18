@@ -254,6 +254,10 @@ def retry_item(iid: str) -> dict:
     with _lock:
         st = _load()
         it = _item(st, iid)
+        if it["status"] == "review":  # "Remake": edit this clip again from scratch
+            it.update(status="queued_again", error=None, engine_note=None)
+            _save(st)
+            return it
         if it["status"] == "failed" and it.get("video_id") is None and it.get("video_path") and Path(it["video_path"]).exists():
             it.update(status="approved", attempts=0, next_try=0, error=None)
             if not it.get("publish_at") or _past(it["publish_at"]):
@@ -463,8 +467,15 @@ def _produce(iid: str):
         engine, err = None, None
         if (s.get("ap_engine") or "hyperframes") == "hyperframes":
             try:
-                hyperframes.edit_clip(_Progress(0.15, 0.85), p, c, s, out)
+                if not hyperframes.ready():  # install the motion graphics pack instead of skipping it
+                    from . import downloads
+                    downloads.wait_for("hyperframes", _Progress(0.15, 0.0), "Installing the motion graphics pack")
+                r = hyperframes.edit_clip(_Progress(0.15, 0.85), p, c, s, out)
                 engine = "hyperframes"
+                with _lock:
+                    st = _load()
+                    _item(st, iid)["motion_plan"] = r.get("plan")
+                    _save(st)
             except Exception as e:  # fall back to the normal editor
                 err = str(e)[:300]
                 if "needs your Claude" not in err and "not installed" not in err:

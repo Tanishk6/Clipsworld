@@ -291,10 +291,16 @@ and clearly edited (not a plain re-upload). Available effects (t = seconds from 
 - replay: slow-mo replay of the best moment, inserted after it. fields: t (end of the moment), dur (1.5-3 seconds replayed), speed (0.5-0.8), sfx
 - text: big meme text pop. fields: t, dur (0.8-2), text (max 3 words, Hinglish or English like "BHAI KYA", "NO WAY", "LMAO"), sfx
 - sfx: sound only. fields: t, sfx
-Sound effects you can use: {sfx}
+Sound effects you can use (id, length, what it sounds like):
+{sfx}
+Sound rules: sounds are timed automatically so their hit/peak lands exactly at t. Match the moment: punch zoom →
+whoosh or zip; big hit/scream/explosion → boom-hit / cinematic-slam / impact-heavy; meme text → pop-large-in
+or appear-burst; fail/oops → notification-failure-*; win/clutch → notification-success-* or celebration-*;
+build-up before a reveal → riser (its end lands at t); freeze → reverse-whoosh. Don't stack sounds on speech
+peaks, vary them (don't use the same sound twice in a row).
 Rules: 3 to 7 effects total, never more than one effect in the same 0.7 seconds, at most one freeze and
 one replay, keep it tasteful and on the beat of the speech. No emojis in text.
-Reply with JSON only: {{"effects":[{{"type":"zoom","t":3.2,"dur":0.8,"scale":1.3,"ease":"snap","sfx":"whoosh"}}]}}"""
+Reply with JSON only: {{"effects":[{{"type":"zoom","t":3.2,"dur":0.8,"scale":1.3,"ease":"snap","sfx":"whoosh-fast-medium"}}]}}"""
 
 SYSTEM_META = """You write YouTube Shorts upload details for an Indian gaming/entertainment clipping channel.
 Return JSON only: {"title": "...", "description": "...", "hashtags": ["#shorts", "..."]}
@@ -305,6 +311,7 @@ No clickbait lies, no misleading claims."""
 
 
 def auto_edit(segments, clip, peaks, settings, sfx_names) -> list:
+    """sfx_names: a list of ids, or the full sound menu as one string."""
     key, model = settings.get("claude_api_key", ""), settings.get("claude_model", "claude-haiku-5-5")
     s0, s1 = clip["start"], clip["end"]
     lines = [f"[{max(0, s['start'] - s0):.1f}-{min(s1, s['end']) - s0:.1f}] {s['text']}"
@@ -312,7 +319,7 @@ def auto_edit(segments, clip, peaks, settings, sfx_names) -> list:
     hint = ", ".join(f"{t:.1f}s" for t in peaks) or "none"
     user = (f"Clip length: {s1 - s0:.1f} seconds. Title: {clip.get('title', '')}\n"
             f"Loudest reaction moments: {hint}\nTranscript (seconds from clip start):\n" + "\n".join(lines))
-    data = _ask_json(key, model, SYSTEM_EDIT.format(sfx=", ".join(sfx_names)), user, SCHEMA_EDIT, "edit", max_tokens=2000)
+    data = _ask_json(key, model, SYSTEM_EDIT.format(sfx=sfx_names if isinstance(sfx_names, str) else ", ".join(sfx_names)), user, SCHEMA_EDIT, "edit", max_tokens=2000)
     return [e for e in _as_list(data.get("effects")) if isinstance(e, dict)]
 
 

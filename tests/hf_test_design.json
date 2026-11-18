@@ -1,6 +1,16 @@
 {
- "css": "#hook{position:absolute;left:70px;right:150px;top:260px;z-index:35;text-align:center;font-family:'Luckiest Guy';font-size:96px;color:#fff;-webkit-text-stroke:8px #000;paint-order:stroke fill}\n#pop1{position:absolute;left:0;right:0;top:600px;z-index:36;text-align:center;font-family:'Bangers';font-size:150px;color:#FFE600;-webkit-text-stroke:10px #000;paint-order:stroke fill}\n#bar{position:absolute;left:0;top:0;height:14px;width:1080px;background:linear-gradient(90deg,#7c5cff,#ff4fd8);transform-origin:0 50%;z-index:40}",
- "html": "<div id='hook' class='clip' data-start='0' data-duration='2.5'>CREEPER NE SAB UDA DIYA 💀</div>\n<div id='pop1' class='clip' data-start='3' data-duration='1.4'>NO WAY 😱</div>\n<div id='bar' class='clip' data-start='0' data-duration='6'></div>",
- "js": "tl.from('#hook',{scale:0.3,opacity:0,duration:0.35,ease:'back.out(2)'},0);\ntl.to('#hook',{y:-40,opacity:0,duration:0.3},2.2);\ntl.fromTo('#bar',{scaleX:0},{scaleX:1,duration:6,ease:'none'},0);\ntl.from('#pop1',{scale:2.5,rotation:-12,opacity:0,duration:0.2},3);\ntl.to('#base',{scale:1.3,duration:0.12},3);\ntl.to('#base',{scale:1,duration:0.4},4.2);\ntl.to('#base',{x:20,duration:0.04,repeat:7,yoyo:true},5);\ntl.set('#base',{x:0},5.4);",
- "sounds": [{"sfx":"boom","t":3,"volume":0.9},{"sfx":"whoosh","t":0.05,"volume":0.6},{"sfx":"nope","t":1}]
+ "hook": {"text": "Creeper ne sab uda diya", "style": "box", "color": "yellow"},
+ "font": "Luckiest Guy",
+ "events": [
+  {"type": "sfx", "t": 0.9, "sfx": "riser-1s-strong"},
+  {"type": "punch", "t": 1.9, "dur": 0.7, "scale": 1.4, "x": 0.5, "y": 0.45},
+  {"type": "flash", "t": 1.9},
+  {"type": "pop", "t": 2.6, "dur": 1.2, "text": "NO WAY", "style": "stamp", "color": "yellow", "y": "upper"},
+  {"type": "shake", "t": 3.0, "dur": 0.5, "strength": 2},
+  {"type": "emoji", "t": 4.0, "dur": 1.4, "emoji": "😂", "x": 0.72, "y": 0.3, "size": "l", "motion": "pop"},
+  {"type": "speedlines", "t": 4.2, "dur": 1.0},
+  {"type": "arrow", "t": 5.0, "dur": 1.5, "x": 0.55, "y": 0.45},
+  {"type": "label", "t": 5.2, "dur": 1.5, "text": "ME:", "x": 0.08, "y": 0.2},
+  {"type": "pop", "t": 6.6, "dur": 1.0, "text": "BHAI KYA?!", "style": "burst", "color": "red", "y": "upper"}
+ ]
 }

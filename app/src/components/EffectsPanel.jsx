@@ -23,12 +23,28 @@ export function playSfx(id) {
   audioEl.play().catch(() => {});
 }
 
+const catLabel = (c) => (c === "mine" ? "My sounds" : c.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()));
+function groupSfx(list) {
+  const m = new Map();
+  for (const s of list) {
+    const c = s.category || "other";
+    if (!m.has(c)) m.set(c, []);
+    m.get(c).push(s);
+  }
+  return [...m.entries()].sort((a, b) => (a[0] === "mine" ? -1 : b[0] === "mine" ? 1 : 0));
+}
+
 function SfxSelect({ value, onChange, list, allowNone = true }) {
   return (
     <div className="sfx-sel">
       <select value={value || ""} onChange={(e) => onChange(e.target.value)}>
         {allowNone && <option value="">No sound</option>}
-        {list.map((s) => <option key={s.id} value={s.id}>{s.name}{s.source === "user" ? " (mine)" : ""}</option>)}
+        {value && !list.some((s) => s.id === value) && <option value={value}>{value}</option>}
+        {groupSfx(list).map(([cat, items]) => (
+          <optgroup key={cat} label={catLabel(cat)}>
+            {items.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </optgroup>
+        ))}
       </select>
       <button className="icon-btn" title="Listen" disabled={!value} onClick={() => playSfx(value)}><Play size={14} /></button>
     </div>
@@ -49,6 +65,7 @@ function Num({ label, value, onChange, min, max, step = 0.1, suffix = "" }) {
 export default function EffectsPanel({ project, clip, patch, replaceClip, time, seek, onPreview, previewBusy }) {
   const toast = useToast();
   const [sfx, setSfx] = useState([]);
+  const [sfxCat, setSfxCat] = useState(null);
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(null);
   const effects = clip.effects || [];
@@ -197,14 +214,19 @@ export default function EffectsPanel({ project, clip, patch, replaceClip, time, 
 
       <div className="field">
         <label><Music2 size={14} /> Sound library</label>
+        <div className="segmented sm sfx-cats">
+          {groupSfx(sfx).map(([cat]) => (
+            <button key={cat} className={cat === (sfxCat || groupSfx(sfx)[0]?.[0]) ? "on" : ""} onClick={() => setSfxCat(cat)}>{catLabel(cat)}</button>
+          ))}
+        </div>
         <div className="sfx-grid">
-          {sfx.map((s) => (
-            <button key={s.id} className="sfx-chip" onClick={() => playSfx(s.id)} title="Click to listen">
+          {(groupSfx(sfx).find(([c]) => c === (sfxCat || groupSfx(sfx)[0]?.[0]))?.[1] || []).map((s) => (
+            <button key={s.id} className="sfx-chip" onClick={() => playSfx(s.id)} title={s.description || "Click to listen"}>
               <Play size={11} /> {s.name}
             </button>
           ))}
         </div>
-        <p className="hint">Add your own sounds: put .wav/.mp3 files in %APPDATA%\Clipsworld\sfx</p>
+        <p className="hint">182 royalty-free (CC0) sounds built in. Add your own: put .wav/.mp3 files in %APPDATA%\Clipsworld\sfx — Claude uses them too.</p>
       </div>
     </>
   );
