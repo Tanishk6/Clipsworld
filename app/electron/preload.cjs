@@ -14,6 +14,9 @@ contextBridge.exposeInMainWorld("clipsworld", {
   appInfo: () => ipcRenderer.invoke("app-info"),
   checkUpdate: () => ipcRenderer.invoke("check-update"),
   restartBackend: () => ipcRenderer.invoke("restart-backend"),
+  setBackground: (on) => ipcRenderer.invoke("set-background", on),
+  getAutoStart: () => ipcRenderer.invoke("get-autostart"),
+  setAutoStart: (on) => ipcRenderer.invoke("set-autostart", on),
   pathForFile: (file) => {
     try { return webUtils.getPathForFile(file); } catch (_) { return file && file.path; }
   },

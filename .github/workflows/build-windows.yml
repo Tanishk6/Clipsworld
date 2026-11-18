@@ -93,6 +93,23 @@ jobs:
             Stop-Transcript
           }
 
+      - name: Autopilot + YouTube + HyperFrames test on Windows
+        id: autopilot
+        continue-on-error: true
+        shell: pwsh
+        timeout-minutes: 30
+        run: |
+          Start-Transcript -Path ap.log
+          $env:CLIPSWORLD_RESOURCES = "$PWD/resources"
+          $env:CLIPSWORLD_DATA = "$PWD/smoke-data"
+          $env:CLIPSWORLD_NO_AUTOPILOT = "0"
+          $env:AP_TEST_HF = "1"
+          $env:PATH = "$PWD/resources/ffmpeg;$env:PATH"
+          python tests/autopilot_test.py "$PWD/smoke video.mkv" resources/ffmpeg/ffprobe.exe dist-backend/clipsworld-backend/clipsworld-backend.exe
+          $code = $LASTEXITCODE
+          Stop-Transcript
+          if ($code -ne 0) { throw "Autopilot test failed" }
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -124,7 +141,7 @@ jobs:
           files: app/release/*.exe
           make_latest: true
           body: |
-            Windows end-to-end test: **${{ steps.e2e.outcome }}**
+            Windows end-to-end test: **${{ steps.e2e.outcome }}** · Autopilot/YouTube/HyperFrames test: **${{ steps.autopilot.outcome }}**
 
             Download **Clipsworld-Setup-*.exe** below and run it. Installing over an older version keeps your projects and settings.
             Windows may show a SmartScreen warning (the app isn't code-signed): click More info → Run anyway.
@@ -134,8 +151,9 @@ jobs:
         shell: pwsh
         run: |
           $log = "$env:RUNNER_TEMP/ci-log.txt"
-          "run=$env:GITHUB_RUN_NUMBER sha=$env:GITHUB_SHA e2e=${{ steps.e2e.outcome }} job=${{ job.status }}" | Out-File $log -Encoding utf8
+          "run=$env:GITHUB_RUN_NUMBER sha=$env:GITHUB_SHA e2e=${{ steps.e2e.outcome }} autopilot=${{ steps.autopilot.outcome }} job=${{ job.status }}" | Out-File $log -Encoding utf8
           if (Test-Path e2e.log) { Get-Content e2e.log | Out-File $log -Append -Encoding utf8 }
+          if (Test-Path ap.log) { Get-Content ap.log | Out-File $log -Append -Encoding utf8 }
           $d = "$env:RUNNER_TEMP/cilog"
           New-Item -ItemType Directory -Force $d | Out-Null
           Copy-Item $log "$d/ci-log.txt"

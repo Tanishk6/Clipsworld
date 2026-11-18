@@ -16,6 +16,17 @@ DEFAULTS = {
     "max_clips": 12,
     "min_clip_sec": 15,
     "max_clip_sec": 60,
+    # Autopilot
+    "ap_enabled": False,
+    "ap_per_day": 5,
+    "ap_times": ["10:00", "13:00", "16:00", "19:00", "21:30"],
+    "ap_approval": True,
+    "ap_engine": "hyperframes",          # hyperframes (motion graphics) or clipsworld (fast)
+    "ap_hf_model": "claude-sonnet-5-5",
+    "ap_privacy": "public",
+    "ap_buffer_days": 2,
+    "ap_clips_per_video": 6,
+    "ap_min_score": 0,
 }
 
 _lock = threading.Lock()

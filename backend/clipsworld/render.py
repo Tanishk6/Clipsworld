@@ -101,7 +101,8 @@ def plan_output(clip: dict):
 
 
 def export_clip(job, project: dict, clip: dict, settings: dict, progress_range=(0.0, 1.0),
-                preview: bool = False, preview_path: Path | None = None) -> dict:
+                preview: bool = False, preview_path: Path | None = None, out_override: Path | None = None,
+                keyframes: bool = False) -> dict:
     info = project["info"]
     fps = min(60.0, float(info.get("fps") or 30.0))
     lay = clip.get("layout", {})
@@ -116,6 +117,8 @@ def export_clip(job, project: dict, clip: dict, settings: dict, progress_range=(
 
     if preview:
         out_path = preview_path
+    elif out_override:
+        out_path = Path(out_override)
     else:
         from .paths import default_output_dir
         base = Path(settings.get("output_dir") or default_output_dir())
@@ -230,6 +233,7 @@ def export_clip(job, project: dict, clip: dict, settings: dict, progress_range=(
                 media.run_ffmpeg(
                     inputs + media.filter_script_args("graph.txt") + ["-map", "[v]", "-map", "[a]",
                               "-t", f"{total:.3f}", "-r", f"{fps:.4f}", *_encoder_args(e, preview),
+                              *(["-g", str(int(round(fps)))] if keyframes else []),
                               "-c:a", "aac", "-b:a", "96k" if preview else "192k", "-ar", "48000",
                               "-movflags", "+faststart", str(out_path)],
                     total, lambda p: job.update(progress=a + (b - a) * p), cwd=str(work))
@@ -241,7 +245,7 @@ def export_clip(job, project: dict, clip: dict, settings: dict, progress_range=(
                     job.update(stage="GPU encoder not available, using CPU…")
         if last_err:
             raise last_err
-        if preview:
+        if preview or out_override:
             return {"path": str(out_path), "duration": round(total, 2)}
         thumb = out_path.with_suffix(".jpg")
         media.thumbnail(str(out_path), min(1.0, total / 3), thumb, width=540)

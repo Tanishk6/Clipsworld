@@ -1,10 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { Clapperboard, FolderOpen, Home as HomeIcon, Settings as SettingsIcon, Sparkles } from "lucide-react";
+import { Bot, Clapperboard, FolderOpen, Home as HomeIcon, Settings as SettingsIcon, Sparkles } from "lucide-react";
 import { api, desktop, url } from "./api.js";
 import Home from "./pages/Home.jsx";
 import Project from "./pages/Project.jsx";
 import Exports from "./pages/Exports.jsx";
 import Settings from "./pages/Settings.jsx";
+import Autopilot from "./pages/Autopilot.jsx";
 import { DownloadsBadge, DownloadsProvider } from "./components/Downloads.jsx";
 
 const ToastCtx = createContext(() => {});
@@ -75,6 +76,7 @@ export function Logo({ size = 28 }) {
 
 const NAV = [
   { id: "home", label: "Studio", icon: HomeIcon },
+  { id: "autopilot", label: "Autopilot", icon: Bot },
   { id: "exports", label: "My Clips", icon: Clapperboard },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -121,6 +123,10 @@ export default function App() {
 
   const refreshSettings = useCallback(async () => setSettings(await api.settings()), []);
 
+  // Autopilot on → closing the window keeps Clipsworld running in the tray
+  const apOn = !!(settings && settings.ap_enabled);
+  useEffect(() => { if (ready && desktop && desktop.setBackground) desktop.setBackground(apOn).catch(() => {}); }, [ready, apOn]);
+
   if (!ready) return <Splash error={bootError} />;
 
   const go = (page, extra = {}) => setRoute({ page, ...extra });
@@ -157,6 +163,7 @@ export default function App() {
             {route.page === "project" && <Project id={route.id} onBack={() => go("home")} />}
             {route.page === "exports" && <Exports />}
             {route.page === "settings" && <Settings />}
+            {route.page === "autopilot" && <Autopilot />}
           </main>
         </div>
         <div className="toasts">

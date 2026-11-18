@@ -11,7 +11,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from .paths import IS_WIN, gpu_dir, models_dir
+from .paths import IS_WIN, data_dir, gpu_dir, models_dir
 
 UA = {"User-Agent": "Clipsworld/1.1"}
 WHISPER_REPOS = {
@@ -179,6 +179,9 @@ def _definition(key: str):
     if key.startswith("model:"):
         name = key.split(":", 1)[1]
         return f"Speech model ({name})", lambda: _model_files(name), None
+    if key == "hyperframes":
+        from . import hyperframes
+        return "Motion graphics pack (HyperFrames)", hyperframes.pack_files, hyperframes.pack_finish
     raise KeyError(key)
 
 
@@ -188,6 +191,9 @@ def is_done(key: str) -> bool:
         return gpu.pack_installed()
     if key.startswith("model:"):
         return model_ready(key.split(":", 1)[1])
+    if key == "hyperframes":
+        from . import hyperframes
+        return hyperframes.ready()
     return False
 
 
@@ -304,6 +310,7 @@ def status(key: str) -> dict:
         try:
             label, files_fn, _ = _definition(key)
             man_known = (key == "gpu" and (gpu_dir() / "_download" / "manifest.json").exists()) or \
+                        (key == "hyperframes" and (data_dir() / "hyperframes" / "_download" / "manifest.json").exists()) or \
                         (key.startswith("model:") and (_model_dir(key[6:]) / "manifest.json").exists())
             if man_known:
                 files = files_fn()
@@ -357,6 +364,7 @@ def pause(key: str) -> dict:
 def all_status(model_name: str) -> list:
     keys = ["gpu"] if IS_WIN else []
     keys.append(f"model:{model_name}")
+    keys.append("hyperframes")
     keys += [k for k in list(_tasks) if k not in keys and _tasks[k].state in ("downloading", "paused", "preparing")]
     out = []
     for k in keys:

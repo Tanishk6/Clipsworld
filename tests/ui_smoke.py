@@ -47,10 +47,19 @@ async def main():
             await pg.click("button[title='Zoom out']")
             await pg.click("button[title='Back to this clip']")
             await toasts(f"clip {i} actions")
-        await pg.click(".nav-btn >> nth=1")
-        await pg.wait_for_timeout(800)
-        await pg.click(".nav-btn >> nth=2")
-        await pg.wait_for_timeout(800)
+        for nav in ("Autopilot", "My Clips", "Settings"):
+            await pg.click(f".nav-btn:has-text('{nav}')")
+            await pg.wait_for_timeout(800)
+            if nav == "Autopilot":
+                await pg.wait_for_selector(".ap-head", timeout=10000)
+                for tab in ("Schedule", "Video links", "Setup", "Review"):
+                    await pg.click(f".ap-tabs button:has-text('{tab}')")
+                    await pg.wait_for_timeout(400)
+                await pg.click(".ap-tabs button:has-text('Setup')")
+                await pg.click(".segmented button:has-text('Fast editor')")
+                await pg.wait_for_timeout(500)
+                await pg.click(".segmented button:has-text('Motion graphics')")
+                await pg.wait_for_timeout(500)
         await toasts("pages")
         print("\n".join(errors) if errors else "UI OK: no errors")
         await b.close()

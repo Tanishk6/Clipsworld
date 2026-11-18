@@ -1,5 +1,5 @@
 // Clipsworld desktop shell: starts the local AI/video engine and opens the UI window.
-const { app, BrowserWindow, dialog, ipcMain, net: enet, session, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, net: enet, session, shell, Tray } = require("electron");
 const { spawn, execFile } = require("child_process");
 const net = require("net");
 const path = require("path");
@@ -10,6 +10,11 @@ let win = null;
 let backend = null;
 let backendPort = 0;
 let backendLog = [];
+let tray = null;
+const startHidden = process.argv.includes("--hidden");   // started with Windows
+let keepInBackground = startHidden;   // Autopilot on: closing the window hides it to the tray
+let quitting = false;
+let trayHintShown = false;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -93,7 +98,18 @@ function createWindow() {
       additionalArguments: [`--cw-port=${backendPort}`],
     },
   });
-  win.once("ready-to-show", () => win.show());
+  win.once("ready-to-show", () => { if (startHidden) ensureTray(); else win.show(); });
+  win.on("close", (e) => {
+    if (keepInBackground && !quitting) {
+      e.preventDefault();
+      win.hide();
+      ensureTray();
+      if (!trayHintShown && tray && tray.displayBalloon) {
+        trayHintShown = true;
+        tray.displayBalloon({ title: "Clipsworld is still running", content: "Autopilot keeps making and posting clips. Right-click the tray icon to quit." });
+      }
+    }
+  });
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//.test(url)) shell.openExternal(url);
     return { action: "deny" };
@@ -127,6 +143,40 @@ ipcMain.handle("show-item", (_e, p) => { shell.showItemInFolder(p); return true;
 ipcMain.handle("open-external", (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); return true; });
 ipcMain.handle("backend-log", () => backendLog.join(""));
 
+function showWindow() {
+  if (!win) return createWindow();
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
+function ensureTray() {
+  if (tray) return;
+  const img = nativeImage.createFromPath(path.join(__dirname, "..", "build", process.platform === "win32" ? "icon.ico" : "icon.png"));
+  tray = new Tray(img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 }));
+  tray.setToolTip("Clipsworld — Autopilot");
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: "Open Clipsworld", click: showWindow },
+    { type: "separator" },
+    { label: "Quit Clipsworld", click: () => { quitting = true; app.quit(); } },
+  ]));
+  tray.on("click", showWindow);
+}
+
+ipcMain.handle("set-background", (_e, on) => {
+  keepInBackground = !!on;
+  if (keepInBackground) ensureTray();
+  else if (tray) { tray.destroy(); tray = null; }
+  return keepInBackground;
+});
+ipcMain.handle("get-autostart", () => {
+  try { return app.getLoginItemSettings({ args: ["--hidden"] }).openAtLogin; } catch (_) { return false; }
+});
+ipcMain.handle("set-autostart", (_e, on) => {
+  app.setLoginItemSettings({ openAtLogin: !!on, args: ["--hidden"] });
+  return !!on;
+});
+
 function buildInfo() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, "..", "build-info.json"), "utf8")); } catch (_) { return { build: 0 }; }
 }
@@ -152,10 +202,7 @@ ipcMain.handle("restart-backend", async () => {
 });
 
 app.on("second-instance", () => {
-  if (win) {
-    if (win.isMinimized()) win.restore();
-    win.focus();
-  }
+  if (win) showWindow();
 });
 
 app.whenReady().then(async () => {
@@ -171,4 +218,4 @@ app.on("window-all-closed", () => {
   stopBackend();
   app.quit();
 });
-app.on("before-quit", stopBackend);
+app.on("before-quit", () => { quitting = true; stopBackend(); });

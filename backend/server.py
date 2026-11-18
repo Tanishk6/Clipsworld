@@ -14,7 +14,7 @@ from clipsworld import ai, captions, gpu, jobs, projects  # noqa: E402
 from clipsworld import settings as settings_mod  # noqa: E402
 from clipsworld.paths import resources_dir  # noqa: E402
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 app = FastAPI(title="Clipsworld", version=VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
@@ -352,6 +352,145 @@ def get_job(jid: str):
 @app.post("/jobs/{jid}/cancel")
 def cancel_job(jid: str):
     return {"ok": jobs.cancel(jid)}
+
+
+# ------------------------------------------------------------ YouTube
+@app.get("/youtube/status")
+def yt_status():
+    from clipsworld import youtube
+    return youtube.status()
+
+
+@app.put("/youtube/client")
+def yt_client(body: dict = Body(...)):
+    from clipsworld import youtube
+    try:
+        youtube.set_client(str(body.get("client_id", "")), str(body.get("client_secret", "")))
+    except youtube.YTError as e:
+        raise HTTPException(400, str(e))
+    return youtube.status()
+
+
+@app.post("/youtube/connect")
+def yt_connect(request: Request):
+    from clipsworld import youtube
+    try:
+        return {"url": youtube.auth_url(f"http://127.0.0.1:{request.url.port}/youtube/callback")}
+    except youtube.YTError as e:
+        raise HTTPException(400, str(e))
+
+
+@app.get("/youtube/callback")
+def yt_callback(code: str = "", state: str = "", error: str = ""):
+    from fastapi.responses import HTMLResponse
+    from clipsworld import youtube
+    ok, msg = False, error or "Google didn't send a sign-in code."
+    if code:
+        try:
+            ch = (youtube.handle_callback(code, state) or {}).get("channel") or {}
+            ok, msg = True, f"Connected to {ch.get('title') or 'your YouTube channel'}."
+        except youtube.YTError as e:
+            msg = str(e)
+    color = "#3ddc84" if ok else "#ff5c7a"
+    import html as h
+    return HTMLResponse(f"""<!doctype html><meta charset=utf-8><title>Clipsworld</title>
+<body style="background:#0d0d14;color:#eee;font:16px system-ui;display:grid;place-items:center;height:100vh;margin:0">
+<div style="text-align:center"><div style="font-size:42px;color:{color}">{'✓' if ok else '✕'}</div>
+<h2>{h.escape(msg)}</h2><p style="opacity:.7">You can close this tab and go back to Clipsworld.</p></div></body>""")
+
+
+@app.post("/youtube/disconnect")
+def yt_disconnect():
+    from clipsworld import youtube
+    youtube.disconnect()
+    return youtube.status()
+
+
+# ------------------------------------------------------------ Autopilot
+@app.get("/autopilot")
+def ap_state():
+    from clipsworld import autopilot
+    return autopilot.state()
+
+
+@app.post("/autopilot/sources")
+def ap_add(body: dict = Body(...)):
+    from clipsworld import autopilot
+    urls = body.get("urls") or []
+    if isinstance(urls, str):
+        urls = urls.split()
+    return autopilot.add_sources(urls)
+
+
+@app.delete("/autopilot/sources/{sid}")
+def ap_remove(sid: str):
+    from clipsworld import autopilot
+    autopilot.remove_source(sid)
+    return {"ok": True}
+
+
+@app.post("/autopilot/sources/{sid}/retry")
+def ap_retry_source(sid: str):
+    from clipsworld import autopilot
+    try:
+        autopilot.retry_source(sid)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+    return {"ok": True}
+
+
+def _ap_call(fn, *a):
+    try:
+        return fn(*a)
+    except KeyError as e:
+        raise HTTPException(404, str(e).strip("'\""))
+    except ValueError as e:
+        raise HTTPException(409, str(e))
+
+
+@app.post("/autopilot/items/{iid}/approve")
+def ap_approve(iid: str, body: dict = Body(default={})):
+    from clipsworld import autopilot
+    return _ap_call(autopilot.approve, iid, body)
+
+
+@app.put("/autopilot/items/{iid}")
+def ap_edit(iid: str, body: dict = Body(...)):
+    from clipsworld import autopilot
+    return _ap_call(autopilot.edit_item, iid, body)
+
+
+@app.post("/autopilot/items/{iid}/reject")
+def ap_reject(iid: str):
+    from clipsworld import autopilot
+    return _ap_call(autopilot.reject, iid)
+
+
+@app.post("/autopilot/items/{iid}/retry")
+def ap_retry(iid: str):
+    from clipsworld import autopilot
+    return _ap_call(autopilot.retry_item, iid)
+
+
+@app.delete("/autopilot/items/{iid}")
+def ap_delete(iid: str):
+    from clipsworld import autopilot
+    _ap_call(autopilot.delete_item, iid)
+    return {"ok": True}
+
+
+@app.post("/autopilot/run")
+def ap_run():
+    from clipsworld import autopilot
+    return {"started": autopilot.run_now(), "busy": autopilot.busy()}
+
+
+@app.on_event("startup")
+def _start_autopilot():
+    if os.environ.get("CLIPSWORLD_NO_AUTOPILOT") == "1":
+        return
+    from clipsworld import autopilot
+    autopilot.start_loop()
 
 
 def main():
