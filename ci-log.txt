@@ -1,0 +1,64 @@
+run=17 sha=2101471cb0ee1dbd0054474d73c01382c175141a e2e=success autopilot=success job=success
+**********************
+PowerShell transcript start
+Start time: 20261118065701
+Username: runnervmm7ud1\runneradmin
+RunAs User: runnervmm7ud1\runneradmin
+Configuration Name: 
+Machine: runnervmm7ud1 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\6d76bc1a-3893-4679-b9a9-184fe6a002eb.ps1'
+Process ID: 596
+PSVersion: 7.6.9
+PSEdition: Core
+GitCommitId: 7.6.9
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is e2e.log
+
+
+
+END-TO-END OK
+server.py:514: DeprecationWarning:
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+
+Traceback (most recent call last):
+  File "clipsworld\jobs.py", line 51, in run
+  File "clipsworld\projects.py", line 414, in translate_clip
+clipsworld.ai.AIError: Add your Claude API key in Settings to translate captions.
+**********************
+PowerShell transcript end
+End time: 20261118065743
+**********************
+**********************
+PowerShell transcript start
+Start time: 20261118065743
+Username: runnervmm7ud1\runneradmin
+RunAs User: runnervmm7ud1\runneradmin
+Configuration Name: 
+Machine: runnervmm7ud1 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\5b3fab62-181a-42b0-b864-6d6e879ef934.ps1'
+Process ID: 10200
+PSVersion: 7.6.9
+PSEdition: Core
+GitCommitId: 7.6.9
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is ap.log
+
+**********************
+PowerShell transcript end
+End time: 20261118070130
+**********************
